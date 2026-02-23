@@ -86,8 +86,39 @@ ASSETS = {
 }
 
 CAPITAL = 1_000_000
-TRANSACTION_COST_BPS = 10  # 0.1% per trade (round-trip approximated per side)
+
+# Per-side transaction cost assumptions by asset class (in bps of notional).
+# These are intentionally lower than a flat 10 bps so the model is closer to
+# liquid-instrument intraday execution, while still conservative for crypto.
+TRANSACTION_COST_BPS_BY_CLASS = {
+    "stock": 2.0,
+    "forex": 1.0,
+    "metal": 2.0,
+    "crypto": 6.0,
+}
+DEFAULT_TRANSACTION_COST_BPS = 4.0
 
 TRADING_WINDOW_START = "09:30"
 TRADING_WINDOW_END = "16:00"
 REBALANCE_TIMES = ["10:00", "12:00", "14:00"]
+
+# Signal/risk parameters
+LOOKBACK = 36
+ENTRY_Z = 2.2
+EXIT_Z = 0.0
+STOP_Z = 3.8
+MAX_POSITIONS_PER_SIDE = 3
+MAX_POSITIONS_PER_CLASS_PER_SIDE = 1
+TOTAL_RISK_BUDGET_FRACTION = 0.01
+MAX_GROSS_LEVERAGE = 3.0
+SIGMA_FLOOR = 1e-4
+
+# Regime filter (SPY realized-volatility z-score).
+REGIME_FILTER_ENABLED = True
+REGIME_VOL_LOOKBACK_BARS = 78
+REGIME_BASELINE_LOOKBACK_BARS = 1560
+REGIME_VOL_Z_MAX = 2.0
+
+# Backtest date window (inclusive dates, US/Eastern)
+BACKTEST_START_DATE = "2025-06-01"
+BACKTEST_END_DATE = "2026-01-31"

@@ -1,228 +1,108 @@
-This plan outlines an iterative, AI-assisted (vibe coding) approach to implementing and backtesting the intraday mean-reversion strategy described in the attached document. The goal is to rapidly prototype, test, and refine the strategy using Python, leveraging modern libraries and AI tools to accelerate development.
+# Vibe Coding Development Plan: Long-Short Mean-Reversion (Revised)
 
-## Overview of Vibe Coding Approach
+## Goal
+Ship a robust intraday backtesting workflow for the revised strategy spec, with strict 5-minute data integrity and a required backtest interval of **June 2025 through January 2026**.
 
-- **Iterative & Exploratory:** Start with a minimal viable backtest and progressively add features. Each iteration produces a runnable script and visual outputs.
-- **AI-Assisted Development:** Use GitHub Copilot, ChatGPT, or similar tools to generate code snippets, debug, and refactor quickly.
-- **Test-Driven Mindset:** Write small tests or assertions for critical functions (e.g., Z-score calculation, position sizing) to catch errors early.
-- **Continuous Feedback:** Run backtests frequently, plot equity curves, and monitor metrics after each major change.
+## Guiding Principles
 
----
+1. Ship small, testable increments.
+2. Fail fast on bad data instead of silently coercing.
+3. Keep signal logic simple, explainable, and auditable.
+4. Separate baseline diagnostics from optimization experiments.
 
-## Phase 1: Data Acquisition & Preparation
+## Phase 1: Data Pipeline Hardening
 
-**Objective:** Obtain clean, aligned 5-minute OHLCV data for all 15 assets, covering at least 2–3 years.
+### Objectives
+- Guarantee 5-minute consistency.
+- Prevent hidden truncation from provider limits.
+- Produce aligned open/close matrices with explicit sparsity.
 
-### Steps
-1. **Identify Data Sources**
-   - **Stocks (TSLA, MCD, NVDA, GOOG, SPY):** Yahoo Finance, Alpaca, Polygon (free tiers may have limitations; consider using `yfinance` for quick start).
-   - **Forex (EUR/USD, AUD/USD):** OANDA API, TrueFX, or `yfinance` (forex data may be sparse; consider using `pandas_datareader`).
-   - **Metals (Gold, Silver, Copper):** Continuous futures from Yahoo Finance (symbols GC=F, SI=F, HG=F) or Quandl.
-   - **Crypto (BTC, ETH, SOL, XRP):** Binance, Coinbase via CCXT library or `yfinance` (e.g., BTC-USD).
-2. **Download & Store Data**
-   - Write a script to download 5-minute data for each asset.
-   - Handle timezone conversion to Eastern Time (ET).
-   - For futures, ensure proper rollover handling (or use continuous contracts).
-   - Save raw data in Parquet/CSV format with consistent naming.
-3. **Data Alignment & Cleaning**
-   - Resample to 5-minute bars if necessary (e.g., forex may have irregular ticks).
-   - Forward-fill missing bars during trading hours (but do not invent data).
-   - For stocks, only keep data within market hours (9:30–16:00 ET) and align with other assets.
-   - Create a single wide-format DataFrame with datetime index and columns for each asset's close price (also open/high/low if needed).
-4. **Quick Validation**
-   - Plot a few assets to ensure data looks correct.
-   - Check for large gaps or outliers.
+### Tasks
+1. Implement Polygon chunked history downloads for long ranges.
+2. Avoid silent Yahoo 60m fallback for 5m requests.
+3. Parse and sanitize raw CSVs robustly (including multi-row Yahoo headers).
+4. Infer native bar spacing per asset and mark non-5m assets.
+5. Forward-fill only one-bar gaps for native 5m assets; keep others sparse.
+6. Rebuild processed pickles (`opens.pkl`, `closes.pkl`).
 
-**Tools:** `yfinance`, `pandas`, `ccxt`, `pytz`, `requests`, `tqdm`.
+### Acceptance Criteria
+- No mixed-frequency contamination in processed data.
+- Crypto history is not capped to early-period truncation when Polygon access is available.
+- Data range can support backtest filtering through January 2026.
 
-**AI Prompt Ideas:**
-- “Write a Python function to download 5-minute historical data for a list of stock tickers using yfinance, handling timezone and resampling.”
-- “Generate code to align multiple time series with different timestamps to a common 5-minute grid.”
+## Phase 2: Strategy Logic Upgrade
 
----
+### Objectives
+- Replace raw-level z-score with class-relative spread z-score.
+- Add volatility regime gating.
+- Improve execution realism with class-specific costs.
 
-## Phase 2: Core Strategy Logic (Signal Generation)
+### Tasks
+1. Build peer-basket spread per asset: `log(asset) - mean(log(peers))`.
+2. Compute rolling z-score (36 bars).
+3. Add diversified selection limits (max positions per class per side).
+4. Add SPY realized-volatility z-score regime filter.
+5. Keep next-bar execution and intrabar TP/stop checks.
+6. Use per-class cost assumptions and leverage/risk caps.
 
-**Objective:** Implement Z-score calculation, entry/exit conditions, and position sizing logic.
+### Acceptance Criteria
+- Signals and orders are reproducible from saved input bars.
+- No look-ahead bias in order timing.
+- Cost model and risk parameters are configurable in one place.
 
-### Steps
-1. **Compute Rolling Statistics**
-   - For each asset, calculate 36-period rolling mean and standard deviation of close prices.
-   - Use `pandas.DataFrame.rolling()` with `min_periods=1` to allow early values (but note that signals before 36 bars are unreliable; we'll filter later).
-2. **Calculate Z-Score**
-   - `zscore = (close - rolling_mean) / rolling_std`
-   - Handle division by zero (set Z-score to NaN when std=0).
-3. **Identify Entry Signals at Rebalance Times**
-   - Define rebalance times: `["10:00", "12:00", "14:00"]` as Python `time` objects.
-   - For each rebalance timestamp, get the latest Z-score for each asset.
-   - Filter candidates: long if Z < -2.0, short if Z > +2.0.
-   - Rank and select top N (N = min(3, #longs, #shorts)).
-4. **Position Sizing (Equal Risk)**
-   - Compute rolling standard deviation of 5-minute returns (percentage) for each asset over the same 36-period window.
-   - At rebalance, for selected assets, allocate risk equally:
-     - Let total risk budget = 1% of capital (example). Each position gets `risk_budget / (2 * N)` (since longs and shorts are balanced).
-     - Position size (in dollars) = `position_risk / asset_volatility` (where volatility is the 36-period std of returns, annualized or per-period; simplest: use the std of returns over the lookback as a proxy for expected move).
-     - Convert to units: `units = position_size / current_price`.
-   - For shorts, units will be negative.
-5. **Exit Conditions**
-   - Continuously monitor positions: if Z-score crosses 0 or exceeds stop threshold (±3.5), close at next bar's open.
-   - Force close all positions at 15:55 ET.
+## Phase 3: Backtest Engine and Reporting
 
-**Tools:** `pandas`, `numpy`, `datetime`.
+### Objectives
+- Enforce required evaluation window.
+- Produce reliable diagnostics for iterative tuning.
 
-**AI Prompt Ideas:**
-- “Create a function that given a DataFrame of close prices, returns a DataFrame of Z-scores using a rolling window of 36 periods.”
-- “Write a function to select top N long and short candidates based on Z-score thresholds, ensuring equal counts.”
-- “Implement equal risk position sizing using rolling volatility.”
+### Tasks
+1. Filter backtest to June 1, 2025 through January 31, 2026.
+2. Remove anchor-asset gating that can unintentionally truncate period.
+3. Generate equity, bar, daily, monthly returns, and summary report.
+4. Track turnover/cost drag in diagnostic scripts.
 
----
+### Acceptance Criteria
+- `summary.md` and `summary.json` reflect requested period bounds.
+- Report artifacts in `data/reports/latest` are internally consistent.
 
-## Phase 3: Backtesting Engine (Vectorized with Event Simulation)
+## Phase 4: Parameter Sweep and Robustness
 
-**Objective:** Simulate trading over historical data, tracking portfolio equity and trades.
+### Objectives
+- Evaluate if edge survives realistic costs.
+- Prioritize stable parameter regions over single-point best Sharpe.
 
-### Steps
-1. **Design Portfolio State**
-   - Maintain a DataFrame of positions (asset, units, entry price, entry time, side).
-   - Keep a cash balance (starting capital).
-   - Track daily equity (cash + market value of positions).
-2. **Iterate Bar by Bar (or Vectorized with Shift)**
-   - **Approach A (Vectorized with next-bar execution):** Create signal DataFrames shifted by one bar to represent execution at next open. This is simpler but may miss intra-bar exits.
-   - **Approach B (Event-driven loop):** Loop through each timestamp, check exits first, then check rebalance times. Execute trades at next open (requires looking ahead one bar). This is more accurate but slower.
-   - For vibe coding, start with Approach A (vectorized) to get quick results, then refine to event-driven.
-3. **Simulate Trades**
-   - At each execution point (rebalance or exit), use the open price of the next bar.
-   - Calculate transaction costs (slippage + commissions) as a percentage of notional or fixed per share.
-   - Update positions and cash.
-4. **Record Trades & Equity**
-   - Log each fill (time, asset, side, price, units, cost).
-   - Compute daily portfolio value.
+### Core Sweep Grid
+- Lookback: 24, 36, 48
+- Entry z: 1.8, 2.2, 2.5
+- Stop z: 3.2, 3.8, 4.2
+- Risk budget fraction: 0.75%, 1.0%, 1.25%
 
-**Tools:** `pandas`, `numpy`. For event-driven, consider `backtrader` or `vectorbt` to speed up.
+### Analysis Outputs
+1. Net Sharpe, annualized return, max drawdown.
+2. Trade count and rebalance activation ratio.
+3. Cost drag as % of starting capital.
+4. Exposure breakdown by asset class.
 
-**AI Prompt Ideas:**
-- “Generate a backtesting loop that processes a DataFrame of signals and executes trades at next open, with transaction costs.”
-- “How to simulate position tracking and equity curve in pandas?”
+## Phase 5: Production-Readiness Enhancements
 
----
+### Recommended Next Enhancements
+1. Exchange-calendar-driven session construction (NYSE calendar).
+2. Slippage model tied to volatility and spread proxies.
+3. Walk-forward parameter selection.
+4. Per-asset liquidity and min-notional constraints.
+5. Trade blotter export for detailed post-trade analytics.
 
-## Phase 4: Performance Analysis & Visualization
+## Execution Checklist for This Iteration
 
-**Objective:** Compute key metrics and generate plots to evaluate strategy.
+1. Update docs and config parameters.
+2. Implement data pipeline hardening.
+3. Implement signal/risk/cost upgrades in strategy/backtest code.
+4. Rebuild processed data and rerun backtest report.
+5. Review metrics; iterate only if diagnostics are coherent.
 
-### Steps
-1. **Compute Returns**
-   - Daily portfolio returns (percentage).
-   - Benchmark: SPY buy-and-hold (or just compare to risk-free).
-2. **Metrics**
-   - Annualized return, volatility, Sharpe ratio (0% risk-free).
-   - Maximum drawdown (with duration).
-   - Win rate, profit factor, average hold time.
-   - Turnover (daily % traded).
-   - Market beta (regress daily returns against SPY returns).
-3. **Visualizations**
-   - Equity curve (log scale) with drawdown shading.
-   - Rolling Sharpe (6-month window).
-   - Monthly returns heatmap.
-   - Distribution of trade returns.
-   - Position concentration over time.
-4. **Sensitivity Analysis** (initial exploration)
-   - Vary lookback (30, 36, 40), entry (1.5, 2.0, 2.5), stop (3.0, 3.5, 4.0), and number of positions (2,3,4).
-   - Run backtest for each combination and compare metrics (use a grid search).
+## Current Status (This Iteration)
 
-**Tools:** `matplotlib`, `seaborn`, `plotly`, `empyrical` (optional).
-
-**AI Prompt Ideas:**
-- “Write a function to calculate all common performance metrics from a series of portfolio returns and a list of trades.”
-- “Plot an equity curve with drawdown using matplotlib.”
-
----
-
-## Phase 5: Robustness Checks & Refinements
-
-**Objective:** Validate strategy under different conditions and avoid overfitting.
-
-### Steps
-1. **Out-of-Sample Testing**
-   - Reserve last 6 months of data for final validation.
-   - Do not use OOS data for parameter tuning.
-2. **Walk-Forward Analysis**
-   - Optimize parameters on rolling in-sample periods and test on subsequent out-of-sample periods.
-3. **Monte Carlo Simulation**
-   - Randomly shuffle trade outcomes to assess distribution of equity curves.
-4. **Stress Tests**
-   - Identify worst periods (e.g., COVID crash, crypto crash) and examine behavior.
-   - Add a volatility filter (e.g., skip trading if VIX > 30) and test.
-5. **Market Neutrality Check**
-   - Regress daily P&L against SPY and sector ETFs (XLK, XLF, etc.).
-   - Ensure beta near zero.
-6. **Transaction Cost Sensitivity**
-   - Double costs and see if strategy remains profitable.
-
-**AI Prompt Ideas:**
-- “Implement a walk-forward optimization for a trading strategy in Python.”
-- “Perform a Monte Carlo simulation by resampling trade returns to generate alternative equity curves.”
-
----
-
-## Phase 6: Paper Trading & Live Deployment Considerations
-
-**Objective:** Prepare for real-time simulation and eventual live trading.
-
-### Steps
-1. **Paper Trading Interface**
-   - Use a broker API (Alpaca, Interactive Brokers) to run the strategy in real-time with paper money.
-   - Modify backtest code to handle live data feeds and order execution.
-2. **Risk Management Additions**
-   - Add daily loss limit (e.g., stop trading if drawdown > 2%).
-   - Implement position limits based on volume.
-3. **Infrastructure**
-   - Schedule script to run during market hours (e.g., using cron or cloud function).
-   - Logging and alerting (email/SMS on errors or large trades).
-4. **Start Small**
-   - Begin with minimal capital to validate real-world execution.
-
-**Tools:** `alpaca-trade-api`, `ib_insync`, `schedule`, `logging`.
-
-**AI Prompt Ideas:**
-- “Write a Python script that connects to Alpaca paper trading API and places orders based on a simple strategy.”
-
----
-
-## Milestones & Success Criteria
-
-| Milestone | Deliverable | Time Estimate |
-|-----------|-------------|---------------|
-| **Phase 1** | Clean, aligned 5-minute dataset for all assets | 2–3 days |
-| **Phase 2** | Functions for Z-score, signal selection, position sizing | 1–2 days |
-| **Phase 3** | Working backtest (vectorized) with equity curve | 2–3 days |
-| **Phase 4** | Performance report with key metrics and plots | 1–2 days |
-| **Phase 5** | Sensitivity analysis and robustness tests | 2–3 days |
-| **Phase 6** | Paper trading script and one week of live simulation | 3–5 days |
-
-**Success Criteria:**
-- Sharpe ratio > 1.5 (after costs) in-sample.
-- Maximum drawdown < 10%.
-- Market beta < 0.2.
-- Strategy holds up in out-of-sample period.
-
----
-
-## Tools & Libraries Summary
-
-- **Data:** `yfinance`, `ccxt`, `pandas-datareader`, `requests`
-- **Manipulation:** `pandas`, `numpy`, `pytz`
-- **Backtesting:** `vectorbt` (fast vectorized), `backtrader` (event-driven) – or custom code
-- **Visualization:** `matplotlib`, `seaborn`, `plotly`
-- **Performance:** `empyrical`, `pyfolio` (optional)
-- **Live Trading:** `alpaca-trade-api`, `ib_insync`
-
----
-
-## Continuous Improvement Loop
-
-- After each phase, review results with AI assistant to identify bugs or enhancements.
-- Use AI to suggest alternative implementations (e.g., different volatility estimators, dynamic thresholds).
-- Keep a changelog of experiments and outcomes.
-
-This vibe coding plan ensures rapid iteration while maintaining a structured path toward a robust intraday mean-reversion strategy. Let’s start coding!
+1. Code and docs are updated and backtest rerun completed.
+2. Backtest timeline now reaches the required end session (January 30, 2026 close).
+3. Remaining blocker: full 5-minute data backfill is incomplete without Polygon access; Yahoo 5m is recent-history-limited.

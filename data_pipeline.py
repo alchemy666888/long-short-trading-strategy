@@ -1,11 +1,12 @@
+import argparse
 import os
-from datetime import datetime, timedelta
 from typing import Dict, Optional, Tuple
 
+import numpy as np
 import pandas as pd
 import yfinance as yf
 
-from long_short_config import ASSETS
+from long_short_config import ASSETS, BACKTEST_END_DATE, BACKTEST_START_DATE
 from polygon_client import download_polygon_5m
 
 
@@ -43,8 +44,31 @@ def download_yfinance(
 
     Uses US/Eastern timezone for all timestamps.
     """
-    # Yahoo intraday limits are interval-dependent. For 5m we clamp to ~60 days.
+    # Yahoo 5m intraday history is limited to recent ~60 days.
     now_utc = pd.Timestamp.utcnow()
+    recency_cutoff = now_utc - pd.Timedelta(days=59)
+
+    def _to_utc(ts_value: Optional[str]) -> Optional[pd.Timestamp]:
+        if not ts_value:
+            return None
+        ts = pd.Timestamp(ts_value)
+        if ts.tzinfo is None:
+            return ts.tz_localize("UTC")
+        return ts.tz_convert("UTC")
+
+    start_ts = _to_utc(start)
+    end_ts = _to_utc(end) if end else now_utc
+    end_ts = min(end_ts, now_utc)
+
+    # Do not silently downgrade to 60m. If 5m data is out of range, return
+    # empty so callers can fail fast or fall back to a proper 5m source.
+    if interval == "5m":
+        if (start_ts is not None and start_ts < recency_cutoff) or end_ts < recency_cutoff:
+            print(
+                f"[WARN] {yf_symbol}: Yahoo 5m only supports recent history; "
+                f"cannot satisfy requested range {start or period} -> {end or 'now'}."
+            )
+            return pd.DataFrame()
 
     yf_kwargs: Dict[str, str] = {"interval": interval, "progress": False}
 
@@ -59,18 +83,11 @@ def download_yfinance(
 
     if interval == "5m":
         # Clamp any request to the last ~59 days to avoid Yahoo hard errors.
-        end_ts = pd.Timestamp(end).tz_localize("UTC") if end else now_utc
-        if end_ts.tzinfo is None:
-            end_ts = end_ts.tz_localize("UTC")
-        end_ts = min(end_ts, now_utc)
         oldest_allowed = end_ts - pd.Timedelta(days=59)
 
         if start:
-            start_ts = pd.Timestamp(start)
-            if start_ts.tzinfo is None:
-                start_ts = start_ts.tz_localize("UTC")
-            else:
-                start_ts = start_ts.tz_convert("UTC")
+            # start_ts already normalized above.
+            assert start_ts is not None
         else:
             start_ts = oldest_allowed
 
@@ -82,6 +99,7 @@ def download_yfinance(
         yf_kwargs["end"] = (end_ts + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
 
     df = yf.download(yf_symbol, **yf_kwargs)
+
     df = _to_eastern_index(df)
     if df.empty:
         return df
@@ -108,11 +126,35 @@ def download_all_assets(
 
         if provider == "polygon":
             polygon_ticker = meta["polygon_ticker"]
-            df = download_polygon_5m(
-                ticker=polygon_ticker,
-                start=start,
-                end=end,
-            )
+            try:
+                df = download_polygon_5m(
+                    ticker=polygon_ticker,
+                    start=start,
+                    end=end,
+                )
+            except Exception as exc:
+                # Graceful fallback for environments without Polygon credentials.
+                fallback_symbol = _infer_yahoo_symbol(name=name, meta=meta)
+                if not fallback_symbol:
+                    print(
+                        f"[WARN] {name}: Polygon unavailable and no Yahoo fallback symbol. "
+                        f"Skipping asset. Reason: {exc}"
+                    )
+                    continue
+
+                fallback_interval = _infer_yahoo_interval(meta=meta)
+                fallback_period = period or meta.get("period", "730d")
+                print(
+                    f"[WARN] {name}: Polygon unavailable. Falling back to Yahoo "
+                    f"({fallback_symbol}, interval={fallback_interval})."
+                )
+                df = download_yfinance(
+                    yf_symbol=fallback_symbol,
+                    interval=fallback_interval,
+                    start=start,
+                    end=end,
+                    period=fallback_period,
+                )
         else:
             yf_symbol = meta["yf_symbol"]
             interval = meta.get("interval", "5m")
@@ -126,9 +168,32 @@ def download_all_assets(
                 period=effective_period,
             )
         if df.empty:
+            print(f"[WARN] {name}: no data returned; skipping.")
             continue
 
         df.to_csv(raw_path)
+
+
+def _infer_yahoo_symbol(name: str, meta: Dict) -> Optional[str]:
+    yf_symbol = meta.get("yf_symbol")
+    if yf_symbol:
+        return str(yf_symbol)
+
+    asset_class = meta.get("asset_class")
+    if asset_class == "stock":
+        return name
+    if asset_class == "crypto":
+        return f"{name}-USD"
+
+    return None
+
+
+def _infer_yahoo_interval(meta: Dict) -> str:
+    # Keep fallback intraday interval consistent with backtest frequency.
+    configured = meta.get("interval")
+    if configured:
+        return str(configured)
+    return "5m"
 
 
 def load_raw_asset(name: str) -> pd.DataFrame:
@@ -136,16 +201,11 @@ def load_raw_asset(name: str) -> pd.DataFrame:
     if not os.path.exists(raw_path):
         raise FileNotFoundError(f"Raw data not found for {name}: {raw_path}")
 
-    df = pd.read_csv(raw_path, index_col=0, parse_dates=True)
+    df = pd.read_csv(raw_path, index_col=0)
     # Robustly coerce index into a tz-aware DatetimeIndex.
     # yfinance CSV exports often include timezone offsets; we normalize by parsing as UTC then converting.
-    idx = pd.to_datetime(df.index, errors="coerce", utc=True)
-    if idx.isna().any():
-        # Fallback: parse without forcing UTC, then localize/convert as needed.
-        idx2 = pd.to_datetime(df.index, errors="coerce")
-        if isinstance(idx2, pd.DatetimeIndex) and idx2.tz is None:
-            idx2 = idx2.tz_localize(EASTERN_TZ)
-        idx = idx2
+    raw_index = pd.Index(df.index.astype(str))
+    idx = pd.to_datetime(raw_index, errors="coerce", utc=True, format="mixed")
 
     df = df.loc[~pd.isna(idx)].copy()
     df.index = idx[~pd.isna(idx)]
@@ -160,6 +220,15 @@ def load_raw_asset(name: str) -> pd.DataFrame:
     return df
 
 
+def _infer_mode_bar_minutes(index: pd.DatetimeIndex) -> float:
+    if len(index) < 2:
+        return np.nan
+    diffs = index.to_series().diff().dropna().dt.total_seconds() / 60.0
+    if diffs.empty:
+        return np.nan
+    return float(diffs.mode().iloc[0])
+
+
 def build_aligned_ohlc() -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Build aligned 5-minute Open and Close DataFrames for all assets.
@@ -170,6 +239,7 @@ def build_aligned_ohlc() -> Tuple[pd.DataFrame, pd.DataFrame]:
     ensure_dirs()
     opens: Dict[str, pd.Series] = {}
     closes: Dict[str, pd.Series] = {}
+    native_5m_assets = set()
 
     for name in ASSETS.keys():
         df = load_raw_asset(name)
@@ -191,6 +261,16 @@ def build_aligned_ohlc() -> Tuple[pd.DataFrame, pd.DataFrame]:
         # Coerce to numeric (raw CSVs can contain strings depending on locale/formatting)
         df["Open"] = pd.to_numeric(df["Open"], errors="coerce")
         df["Close"] = pd.to_numeric(df["Close"], errors="coerce")
+        df = df.dropna(subset=["Open", "Close"])
+
+        mode_bar_minutes = _infer_mode_bar_minutes(df.index)
+        if not np.isnan(mode_bar_minutes) and abs(mode_bar_minutes - 5.0) <= 0.5:
+            native_5m_assets.add(name)
+        else:
+            print(
+                f"[WARN] {name}: detected non-5m native bar spacing "
+                f"({mode_bar_minutes:.2f}m). Data kept sparse without forward-fill."
+            )
 
         opens[name] = df["Open"]
         closes[name] = df["Close"]
@@ -215,9 +295,28 @@ def build_aligned_ohlc() -> Tuple[pd.DataFrame, pd.DataFrame]:
     end_ts = full_index.max().ceil("5min")
     grid_index = pd.date_range(start=start_ts, end=end_ts, freq="5min", tz=EASTERN_TZ)
 
-    # Upsample/downsample to 5-minute grid by forward-filling last known bar values.
-    opens_df = opens_df.reindex(grid_index).ffill()
-    closes_df = closes_df.reindex(grid_index).ffill()
+    opens_df = opens_df.reindex(grid_index)
+    closes_df = closes_df.reindex(grid_index)
+
+    # Fill only short one-bar gaps for assets that are truly native 5m.
+    for asset in opens_df.columns:
+        if asset in native_5m_assets:
+            opens_df[asset] = opens_df[asset].ffill(limit=1)
+            closes_df[asset] = closes_df[asset].ffill(limit=1)
+
+    # Keep each asset NaN outside its observed raw time range.
+    for col in opens_df.columns:
+        first_open = opens[col].first_valid_index()
+        last_open = opens[col].last_valid_index()
+        if first_open is not None and last_open is not None:
+            outside_range_open = (opens_df.index < first_open) | (opens_df.index > last_open)
+            opens_df.loc[outside_range_open, col] = np.nan
+
+        first_close = closes[col].first_valid_index()
+        last_close = closes[col].last_valid_index()
+        if first_close is not None and last_close is not None:
+            outside_range_close = (closes_df.index < first_close) | (closes_df.index > last_close)
+            closes_df.loc[outside_range_close, col] = np.nan
 
     # Persist processed data (pickle avoids requiring pyarrow/fastparquet)
     opens_df.to_pickle(os.path.join(PROCESSED_DIR, "opens.pkl"))
@@ -242,7 +341,45 @@ def load_processed_ohlc() -> Tuple[pd.DataFrame, pd.DataFrame]:
     return build_aligned_ohlc()
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Download raw OHLC data and build aligned processed datasets."
+    )
+    parser.add_argument(
+        "--start",
+        default=BACKTEST_START_DATE,
+        help=f"Start date (YYYY-MM-DD). Default: {BACKTEST_START_DATE}",
+    )
+    parser.add_argument(
+        "--end",
+        default=BACKTEST_END_DATE,
+        help=f"End date (YYYY-MM-DD). Default: {BACKTEST_END_DATE}",
+    )
+    parser.add_argument(
+        "--period",
+        default=None,
+        help="Provider period override (mainly for yfinance).",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Re-download and overwrite existing raw CSVs.",
+    )
+    parser.add_argument(
+        "--build-only",
+        action="store_true",
+        help="Skip downloads and only rebuild processed pickles from raw CSVs.",
+    )
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    # Example CLI-style usage: download data and build aligned datasets.
-    download_all_assets()
+    args = parse_args()
+    if not args.build_only:
+        download_all_assets(
+            start=args.start,
+            end=args.end,
+            period=args.period,
+            force=args.force,
+        )
     build_aligned_ohlc()

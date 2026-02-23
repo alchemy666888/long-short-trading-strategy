@@ -1,0 +1,13 @@
+{
+  "start": "2025-06-02 09:30:00-04:00",
+  "end": "2026-01-30 16:00:00-05:00",
+  "bars": 13825,
+  "start_equity": 1000000.0,
+  "end_equity": 693440.1125552354,
+  "total_return_pct": -30.65598874447646,
+  "annualized_return_pct": -40.57973077672285,
+  "annualized_volatility_pct": 18.4191833851301,
+  "sharpe": -2.2031232290940252,
+  "max_drawdown_pct": -33.901400641427,
+  "max_drawdown_at": "2026-01-29 11:05:00-05:00"
+}
