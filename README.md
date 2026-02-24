@@ -1,82 +1,84 @@
-# Long/Short Intraday Mean Reversion (Prototype)
+# Long/Short Mean Reversion Strategy (v3 Upgrade)
 
-This repo contains a **Phase 1–3 prototype** implementation of the intraday long/short mean reversion strategy described in `long-short-trading-strategy.md`, following `vibe-coding-development-plan-long-short-mean-reversion-strategy.md`.
+This repository now implements a **v3-oriented, backtest-first** long/short framework based on:
+- multi-horizon momentum (20/60/120 log-return z-scores),
+- EWMA volatility normalization,
+- quartile candidate selection,
+- correlation-aware long/short pairing,
+- ATR-based risk exits,
+- stress-friction evaluation (1.5x and 2.0x+delay scenarios).
 
-## What’s included
-
-- **Phase 1**: Download + alignment pipeline for 5-minute OHLCV (Yahoo Finance via `yfinance`)
-- **Phase 2**: Z-score signal generation + balanced long/short selection + inverse-volatility sizing
-- **Phase 3**: Vectorized backtest loop with **next-bar execution**, flat **0.1% transaction cost per execution**, bar-based exits, and 15:55 liquidation
-
-## Setup
+## 1) Setup
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Polygon API Key (for full 5-minute history)
-
-Option A (shell env):
-
-```bash
-export POLYGON_API_KEY="your_key_here"
-```
-
-Option B (`.env` file in repo root):
+Optional Polygon key for richer 5-minute history:
 
 ```bash
 cp .env.example .env
-# edit .env and set POLYGON_API_KEY
+# set POLYGON_API_KEY=...
 ```
 
-## Download data (Yahoo Finance)
+## 2) Build data
+
+Download raw data and build aligned processed OHLC pickles:
 
 ```bash
 python data_pipeline.py --force --start 2025-06-01 --end 2026-01-31
 ```
 
-Outputs:
-- `data/raw/*.csv`
+Generated processed files:
 - `data/processed/opens.pkl`
+- `data/processed/highs.pkl`
+- `data/processed/lows.pkl`
 - `data/processed/closes.pkl`
 
-Note:
-- Yahoo Finance intraday history is limited (often ~60 days for **5-minute** bars).
-- To keep the **full universe for free**, this repo downloads **stocks at 60-minute bars** (longer history) and downloads other assets at **5-minute bars**.
-- All series are then aligned onto a **5-minute grid** via forward-fill so the portfolio backtest can run on a unified timeline.
-- If `POLYGON_API_KEY` is not set (or Polygon fails), the pipeline now auto-falls back to Yahoo for Polygon-configured assets.
-- For older Yahoo ranges (outside ~60 days), the downloader auto-switches `5m` requests to `60m` to avoid hard failures.
+If you already have raw CSV files and only want to rebuild processed matrices:
 
-## Run backtest
+```bash
+python data_pipeline.py --build-only
+```
+
+## 3) Run the backtest
 
 ```bash
 python backtest_vectorized.py
 ```
 
-This prints the tail of the equity series.
+This runs the v3-style strategy and prints the equity tail.
 
-## Generate backtest report
+## 4) Generate full report bundle
 
 ```bash
 python backtest_report.py
 ```
 
-This runs the backtest and writes a report bundle to:
-- `data/reports/<timestamp>/summary.md`
-- `data/reports/<timestamp>/summary.json`
-- `data/reports/<timestamp>/equity.csv`
-- `data/reports/<timestamp>/bar_returns.csv`
-- `data/reports/<timestamp>/daily_returns.csv`
-- `data/reports/<timestamp>/monthly_returns.csv`
-- `data/reports/<timestamp>/equity_curve.png`
-- `data/reports/<timestamp>/drawdown.png`
+Outputs (timestamped directory under `data/reports/`):
+- `summary.md`
+- `summary.json`
+- `equity.csv`
+- `equity_stress_1p5x.csv`
+- `equity_stress_2p0x_delay.csv`
+- `equity_curve.png` (unless `--no-plots`)
 
-Optional:
-- `python backtest_report.py --no-plots`
-- `python backtest_report.py --output-dir data/reports/latest`
+Useful options:
 
-## Configuration
+```bash
+python backtest_report.py --no-plots
+python backtest_report.py --output-dir data/reports/latest
+```
 
-Edit `/Users/antee/Documents/projects/long-short-trading-strategy/long_short_config.py` to change assets, capital, cost assumptions, and backtest dates:
-- `BACKTEST_START_DATE = "2025-06-01"`
-- `BACKTEST_END_DATE = "2026-01-31"`
+## 5) Config knobs
+
+Edit `long_short_config.py` for:
+- date window,
+- rebalance schedule,
+- cost assumptions by asset class,
+- leverage limits.
+
+## 6) Notes
+
+- Yahoo intraday 5m coverage is limited; Polygon is preferred for deeper history.
+- The current implementation prioritizes v3 core mechanics and stress validation flow.
