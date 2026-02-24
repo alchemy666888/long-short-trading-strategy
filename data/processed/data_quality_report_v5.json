@@ -1,0 +1,238 @@
+{
+  "hard_pass": true,
+  "breadth_pass": true,
+  "breadth": {
+    "eligible_assets": 14,
+    "eligible_categories": 4,
+    "max_category_share": 0.3571,
+    "eligible_assets_list": [
+      "AUDUSD",
+      "BTC",
+      "COPPER",
+      "ETH",
+      "EURUSD",
+      "GOLD",
+      "GOOG",
+      "MCD",
+      "NVDA",
+      "SILVER",
+      "SOL",
+      "SPY",
+      "TSLA",
+      "XRP"
+    ],
+    "class_counts": {
+      "stock": 5,
+      "forex": 2,
+      "metal": 3,
+      "crypto": 4
+    }
+  },
+  "thresholds": {
+    "daily_coverage_90d": 0.98,
+    "4h_coverage_30d": 0.95,
+    "feature_completeness": 0.97,
+    "min_eligible_assets": 10,
+    "min_categories": 3,
+    "max_category_share": 0.45
+  },
+  "per_asset": {
+    "TSLA": {
+      "asset_class": "stock",
+      "frequency_median_hours": {
+        "1d": 24.0,
+        "4h": 4.0
+      },
+      "coverage_min": {
+        "1d_90d": 1.0,
+        "4h_30d": 1.0
+      },
+      "feature_completeness": 1.0,
+      "eligible": true,
+      "reasons": []
+    },
+    "MCD": {
+      "asset_class": "stock",
+      "frequency_median_hours": {
+        "1d": 24.0,
+        "4h": 4.0
+      },
+      "coverage_min": {
+        "1d_90d": 1.0,
+        "4h_30d": 1.0
+      },
+      "feature_completeness": 1.0,
+      "eligible": true,
+      "reasons": []
+    },
+    "NVDA": {
+      "asset_class": "stock",
+      "frequency_median_hours": {
+        "1d": 24.0,
+        "4h": 4.0
+      },
+      "coverage_min": {
+        "1d_90d": 1.0,
+        "4h_30d": 1.0
+      },
+      "feature_completeness": 1.0,
+      "eligible": true,
+      "reasons": []
+    },
+    "GOOG": {
+      "asset_class": "stock",
+      "frequency_median_hours": {
+        "1d": 24.0,
+        "4h": 4.0
+      },
+      "coverage_min": {
+        "1d_90d": 1.0,
+        "4h_30d": 1.0
+      },
+      "feature_completeness": 1.0,
+      "eligible": true,
+      "reasons": []
+    },
+    "SPY": {
+      "asset_class": "stock",
+      "frequency_median_hours": {
+        "1d": 24.0,
+        "4h": 4.0
+      },
+      "coverage_min": {
+        "1d_90d": 1.0,
+        "4h_30d": 1.0
+      },
+      "feature_completeness": 1.0,
+      "eligible": true,
+      "reasons": []
+    },
+    "EURUSD": {
+      "asset_class": "forex",
+      "frequency_median_hours": {
+        "1d": 24.0,
+        "4h": 4.0
+      },
+      "coverage_min": {
+        "1d_90d": 1.0,
+        "4h_30d": 1.0
+      },
+      "feature_completeness": 1.0,
+      "eligible": true,
+      "reasons": []
+    },
+    "AUDUSD": {
+      "asset_class": "forex",
+      "frequency_median_hours": {
+        "1d": 24.0,
+        "4h": 4.0
+      },
+      "coverage_min": {
+        "1d_90d": 1.0,
+        "4h_30d": 1.0
+      },
+      "feature_completeness": 1.0,
+      "eligible": true,
+      "reasons": []
+    },
+    "GOLD": {
+      "asset_class": "metal",
+      "frequency_median_hours": {
+        "1d": 24.0,
+        "4h": 4.0
+      },
+      "coverage_min": {
+        "1d_90d": 1.0,
+        "4h_30d": 1.0
+      },
+      "feature_completeness": 1.0,
+      "eligible": true,
+      "reasons": []
+    },
+    "SILVER": {
+      "asset_class": "metal",
+      "frequency_median_hours": {
+        "1d": 24.0,
+        "4h": 4.0
+      },
+      "coverage_min": {
+        "1d_90d": 1.0,
+        "4h_30d": 1.0
+      },
+      "feature_completeness": 1.0,
+      "eligible": true,
+      "reasons": []
+    },
+    "COPPER": {
+      "asset_class": "metal",
+      "frequency_median_hours": {
+        "1d": 24.0,
+        "4h": 4.0
+      },
+      "coverage_min": {
+        "1d_90d": 1.0,
+        "4h_30d": 1.0
+      },
+      "feature_completeness": 1.0,
+      "eligible": true,
+      "reasons": []
+    },
+    "BTC": {
+      "asset_class": "crypto",
+      "frequency_median_hours": {
+        "1d": 24.0,
+        "4h": 4.0
+      },
+      "coverage_min": {
+        "1d_90d": 1.0,
+        "4h_30d": 1.0
+      },
+      "feature_completeness": 1.0,
+      "eligible": true,
+      "reasons": []
+    },
+    "ETH": {
+      "asset_class": "crypto",
+      "frequency_median_hours": {
+        "1d": 24.0,
+        "4h": 4.0
+      },
+      "coverage_min": {
+        "1d_90d": 1.0,
+        "4h_30d": 1.0
+      },
+      "feature_completeness": 1.0,
+      "eligible": true,
+      "reasons": []
+    },
+    "SOL": {
+      "asset_class": "crypto",
+      "frequency_median_hours": {
+        "1d": 24.0,
+        "4h": 4.0
+      },
+      "coverage_min": {
+        "1d_90d": 1.0,
+        "4h_30d": 1.0
+      },
+      "feature_completeness": 1.0,
+      "eligible": true,
+      "reasons": []
+    },
+    "XRP": {
+      "asset_class": "crypto",
+      "frequency_median_hours": {
+        "1d": 24.0,
+        "4h": 4.0
+      },
+      "coverage_min": {
+        "1d_90d": 1.0,
+        "4h_30d": 1.0
+      },
+      "feature_completeness": 1.0,
+      "eligible": true,
+      "reasons": []
+    }
+  },
+  "exclusions": {}
+}

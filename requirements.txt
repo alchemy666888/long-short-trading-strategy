@@ -1,6 +1,5 @@
 numpy
 pandas
 matplotlib
-yfinance
 ccxt
 requests

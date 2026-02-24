@@ -1,111 +1,28 @@
+from __future__ import annotations
+
 import argparse
 import os
-from typing import Dict, Optional, Tuple
+from pathlib import Path
+from typing import Dict, Tuple
 
 import numpy as np
 import pandas as pd
-import yfinance as yf
 
+from data_quality import build_data_quality_report, load_data_quality_report
 from long_short_config import ASSETS, BACKTEST_END_DATE, BACKTEST_START_DATE
 from polygon_client import download_polygon_5m
-
 
 DATA_DIR = "data"
 RAW_DIR = os.path.join(DATA_DIR, "raw")
 PROCESSED_DIR = os.path.join(DATA_DIR, "processed")
 EASTERN_TZ = "US/Eastern"
 
+QUALITY_REPORT_PATH = Path(PROCESSED_DIR) / "data_quality_report_v5.json"
+
 
 def ensure_dirs() -> None:
     os.makedirs(RAW_DIR, exist_ok=True)
     os.makedirs(PROCESSED_DIR, exist_ok=True)
-
-
-def _to_eastern_index(df: pd.DataFrame) -> pd.DataFrame:
-    if df.empty:
-        return df
-    if isinstance(df.index, pd.DatetimeIndex) and df.index.tz is None:
-        # yfinance often returns tz-naive; treat as UTC then convert.
-        df = df.tz_localize("UTC")
-    if isinstance(df.index, pd.DatetimeIndex):
-        df = df.tz_convert(EASTERN_TZ).sort_index()
-    return df
-
-
-def download_yfinance(
-    yf_symbol: str,
-    interval: str,
-    start: str = None,
-    end: str = None,
-    period: str = "730d",
-) -> pd.DataFrame:
-    """
-    Download historical OHLCV from Yahoo Finance for a single symbol.
-
-    Uses US/Eastern timezone for all timestamps.
-    """
-    # Yahoo 5m intraday history is limited to recent ~60 days.
-    now_utc = pd.Timestamp.utcnow()
-    recency_cutoff = now_utc - pd.Timedelta(days=59)
-
-    def _to_utc(ts_value: Optional[str]) -> Optional[pd.Timestamp]:
-        if not ts_value:
-            return None
-        ts = pd.Timestamp(ts_value)
-        if ts.tzinfo is None:
-            return ts.tz_localize("UTC")
-        return ts.tz_convert("UTC")
-
-    start_ts = _to_utc(start)
-    end_ts = _to_utc(end) if end else now_utc
-    end_ts = min(end_ts, now_utc)
-
-    # Do not silently downgrade to 60m. If 5m data is out of range, return
-    # empty so callers can fail fast or fall back to a proper 5m source.
-    if interval == "5m":
-        if (start_ts is not None and start_ts < recency_cutoff) or end_ts < recency_cutoff:
-            print(
-                f"[WARN] {yf_symbol}: Yahoo 5m only supports recent history; "
-                f"cannot satisfy requested range {start or period} -> {end or 'now'}."
-            )
-            return pd.DataFrame()
-
-    yf_kwargs: Dict[str, str] = {"interval": interval, "progress": False}
-
-    if start or end:
-        # If caller specifies explicit dates, keep them (except we may clamp 5m).
-        if start:
-            yf_kwargs["start"] = start
-        if end:
-            yf_kwargs["end"] = end
-    else:
-        yf_kwargs["period"] = period
-
-    if interval == "5m":
-        # Clamp any request to the last ~59 days to avoid Yahoo hard errors.
-        oldest_allowed = end_ts - pd.Timedelta(days=59)
-
-        if start:
-            # start_ts already normalized above.
-            assert start_ts is not None
-        else:
-            start_ts = oldest_allowed
-
-        if start_ts < oldest_allowed:
-            start_ts = oldest_allowed
-
-        yf_kwargs.pop("period", None)
-        yf_kwargs["start"] = start_ts.strftime("%Y-%m-%d")
-        yf_kwargs["end"] = (end_ts + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
-
-    df = yf.download(yf_symbol, **yf_kwargs)
-
-    df = _to_eastern_index(df)
-    if df.empty:
-        return df
-
-    df = df[~df.index.duplicated(keep="last")]
-    return df
 
 
 def download_all_assets(
@@ -114,86 +31,40 @@ def download_all_assets(
     period: str = None,
     force: bool = False,
 ) -> None:
-    """
-    Download OHLCV for all configured assets and cache to CSV.
-    """
+    if period is not None:
+        print("[WARN] --period is ignored in Polygon-only mode.")
+
     ensure_dirs()
+
     for name, meta in ASSETS.items():
-        provider = meta.get("provider", "yahoo")
+        provider = str(meta.get("provider", "")).lower()
         raw_path = os.path.join(RAW_DIR, f"{name}.csv")
         if os.path.exists(raw_path) and not force:
             continue
 
-        if provider == "polygon":
-            polygon_ticker = meta["polygon_ticker"]
-            try:
-                df = download_polygon_5m(
-                    ticker=polygon_ticker,
-                    start=start,
-                    end=end,
-                )
-            except Exception as exc:
-                # Graceful fallback for environments without Polygon credentials.
-                fallback_symbol = _infer_yahoo_symbol(name=name, meta=meta)
-                if not fallback_symbol:
-                    print(
-                        f"[WARN] {name}: Polygon unavailable and no Yahoo fallback symbol. "
-                        f"Skipping asset. Reason: {exc}"
-                    )
-                    continue
+        if provider != "polygon":
+            raise ValueError(
+                f"{name} is configured with provider={provider!r}. "
+                "All assets must use provider='polygon'."
+            )
 
-                fallback_interval = _infer_yahoo_interval(meta=meta)
-                fallback_period = period or meta.get("period", "730d")
-                print(
-                    f"[WARN] {name}: Polygon unavailable. Falling back to Yahoo "
-                    f"({fallback_symbol}, interval={fallback_interval})."
-                )
-                df = download_yfinance(
-                    yf_symbol=fallback_symbol,
-                    interval=fallback_interval,
-                    start=start,
-                    end=end,
-                    period=fallback_period,
-                )
-        else:
-            yf_symbol = meta["yf_symbol"]
-            interval = meta.get("interval", "5m")
-            default_period = meta.get("period", "60d")
-            effective_period = period or default_period
-            df = download_yfinance(
-                yf_symbol=yf_symbol,
-                interval=interval,
+        polygon_ticker = meta.get("polygon_ticker")
+        if not polygon_ticker:
+            raise ValueError(f"{name} is missing required 'polygon_ticker' in config.")
+
+        try:
+            df = download_polygon_5m(
+                ticker=str(polygon_ticker),
                 start=start,
                 end=end,
-                period=effective_period,
             )
+        except Exception as exc:
+            raise RuntimeError(f"Polygon download failed for {name} ({polygon_ticker}): {exc}") from exc
+
         if df.empty:
-            print(f"[WARN] {name}: no data returned; skipping.")
-            continue
+            raise RuntimeError(f"Polygon returned no data for {name} ({polygon_ticker}).")
 
         df.to_csv(raw_path)
-
-
-def _infer_yahoo_symbol(name: str, meta: Dict) -> Optional[str]:
-    yf_symbol = meta.get("yf_symbol")
-    if yf_symbol:
-        return str(yf_symbol)
-
-    asset_class = meta.get("asset_class")
-    if asset_class == "stock":
-        return name
-    if asset_class == "crypto":
-        return f"{name}-USD"
-
-    return None
-
-
-def _infer_yahoo_interval(meta: Dict) -> str:
-    # Keep fallback intraday interval consistent with backtest frequency.
-    configured = meta.get("interval")
-    if configured:
-        return str(configured)
-    return "5m"
 
 
 def load_raw_asset(name: str) -> pd.DataFrame:
@@ -202,11 +73,7 @@ def load_raw_asset(name: str) -> pd.DataFrame:
         raise FileNotFoundError(f"Raw data not found for {name}: {raw_path}")
 
     df = pd.read_csv(raw_path, index_col=0)
-    # Robustly coerce index into a tz-aware DatetimeIndex.
-    # yfinance CSV exports often include timezone offsets; we normalize by parsing as UTC then converting.
-    raw_index = pd.Index(df.index.astype(str))
-    idx = pd.to_datetime(raw_index, errors="coerce", utc=True, format="mixed")
-
+    idx = pd.to_datetime(pd.Index(df.index.astype(str)), errors="coerce", utc=True, format="mixed")
     df = df.loc[~pd.isna(idx)].copy()
     df.index = idx[~pd.isna(idx)]
 
@@ -216,184 +83,202 @@ def load_raw_asset(name: str) -> pd.DataFrame:
         else:
             df.index = df.index.tz_convert(EASTERN_TZ)
 
-    df = df.sort_index()
-    return df
+    return df.sort_index()
 
 
-def _infer_mode_bar_minutes(index: pd.DatetimeIndex) -> float:
-    if len(index) < 2:
-        return np.nan
-    diffs = index.to_series().diff().dropna().dt.total_seconds() / 60.0
-    if diffs.empty:
-        return np.nan
-    return float(diffs.mode().iloc[0])
+def _standardize_ohlc_columns(df: pd.DataFrame) -> pd.DataFrame:
+    if df.empty:
+        return df
+
+    rename_map = {col: col.capitalize() for col in df.columns}
+    df = df.rename(columns=rename_map)
+    needed = ["Open", "High", "Low", "Close"]
+    if any(col not in df.columns for col in needed):
+        return pd.DataFrame(columns=needed)
+
+    out = df[needed].copy()
+    for col in needed:
+        out[col] = pd.to_numeric(out[col], errors="coerce")
+
+    out = out.dropna(subset=needed)
+    return out
 
 
-def build_aligned_ohlc() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """
-    Build aligned 5-minute OHLC DataFrames for all assets.
+def _resample_asset_ohlc(df: pd.DataFrame, rule: str) -> Tuple[pd.DataFrame, pd.Series]:
+    if df.empty:
+        return pd.DataFrame(columns=["Open", "High", "Low", "Close"]), pd.Series(dtype=bool)
 
-    Returns:
-        opens, highs, lows, closes: wide DataFrames with datetime index and one column per asset.
-    """
+    ohlc = df[["Open", "High", "Low", "Close"]].resample(rule, label="right", closed="right").agg(
+        {
+            "Open": "first",
+            "High": "max",
+            "Low": "min",
+            "Close": "last",
+        }
+    )
+    expected = df["Close"].resample(rule, label="right", closed="right").count() > 0
+
+    for col in ["Open", "High", "Low", "Close"]:
+        ohlc.loc[~expected, col] = np.nan
+
+    return ohlc.sort_index(), expected.sort_index()
+
+
+def _assemble_wide(series_map: Dict[str, pd.Series], index: pd.DatetimeIndex) -> pd.DataFrame:
+    frame = pd.DataFrame({asset: s.reindex(index) for asset, s in series_map.items()}, index=index)
+    return frame.apply(pd.to_numeric, errors="coerce").sort_index()
+
+
+def build_v5_matrices(write_quality_report: bool = True) -> Dict[str, pd.DataFrame]:
     ensure_dirs()
-    opens: Dict[str, pd.Series] = {}
-    highs: Dict[str, pd.Series] = {}
-    lows: Dict[str, pd.Series] = {}
-    closes: Dict[str, pd.Series] = {}
-    native_5m_assets = set()
 
-    for name in ASSETS.keys():
-        df = load_raw_asset(name)
-        # Keep only 5-min bars; index already at 5m resolution from download
-        # Filter to regular trading hours for stocks; keep full session for others.
-        if df.empty:
+    opens_1d: Dict[str, pd.Series] = {}
+    highs_1d: Dict[str, pd.Series] = {}
+    lows_1d: Dict[str, pd.Series] = {}
+    closes_1d: Dict[str, pd.Series] = {}
+
+    opens_4h: Dict[str, pd.Series] = {}
+    highs_4h: Dict[str, pd.Series] = {}
+    lows_4h: Dict[str, pd.Series] = {}
+    closes_4h: Dict[str, pd.Series] = {}
+
+    expected_1d: Dict[str, pd.Series] = {}
+    expected_4h: Dict[str, pd.Series] = {}
+
+    for asset in ASSETS.keys():
+        try:
+            raw = load_raw_asset(asset)
+        except FileNotFoundError:
             continue
 
-        # Standardize columns
-        df = df.rename(
-            columns={
-                col: col.capitalize()
-                for col in df.columns
-            }
+        raw = _standardize_ohlc_columns(raw)
+        if raw.empty:
+            continue
+
+        ohlc_1d, exp_1d = _resample_asset_ohlc(raw, "1D")
+        ohlc_4h, exp_4h = _resample_asset_ohlc(raw, "4h")
+
+        opens_1d[asset] = ohlc_1d["Open"]
+        highs_1d[asset] = ohlc_1d["High"]
+        lows_1d[asset] = ohlc_1d["Low"]
+        closes_1d[asset] = ohlc_1d["Close"]
+
+        opens_4h[asset] = ohlc_4h["Open"]
+        highs_4h[asset] = ohlc_4h["High"]
+        lows_4h[asset] = ohlc_4h["Low"]
+        closes_4h[asset] = ohlc_4h["Close"]
+
+        expected_1d[asset] = exp_1d
+        expected_4h[asset] = exp_4h
+
+    if not closes_1d or not closes_4h:
+        raise ValueError("No processed 1D/4H data could be built from raw inputs.")
+
+    idx_1d = pd.DatetimeIndex(sorted(set().union(*(s.index for s in closes_1d.values()))), tz=EASTERN_TZ)
+    idx_4h = pd.DatetimeIndex(sorted(set().union(*(s.index for s in closes_4h.values()))), tz=EASTERN_TZ)
+
+    matrices = {
+        "opens_1d": _assemble_wide(opens_1d, idx_1d),
+        "highs_1d": _assemble_wide(highs_1d, idx_1d),
+        "lows_1d": _assemble_wide(lows_1d, idx_1d),
+        "closes_1d": _assemble_wide(closes_1d, idx_1d),
+        "opens_4h": _assemble_wide(opens_4h, idx_4h),
+        "highs_4h": _assemble_wide(highs_4h, idx_4h),
+        "lows_4h": _assemble_wide(lows_4h, idx_4h),
+        "closes_4h": _assemble_wide(closes_4h, idx_4h),
+    }
+
+    expected_1d_df = _assemble_wide(expected_1d, idx_1d).fillna(0.0).astype(bool)
+    expected_4h_df = _assemble_wide(expected_4h, idx_4h).fillna(0.0).astype(bool)
+
+    for key, frame in matrices.items():
+        frame.to_pickle(Path(PROCESSED_DIR) / f"{key}.pkl")
+
+    # Keep legacy file names mapped to 4H for backward compatibility.
+    matrices["opens_4h"].to_pickle(Path(PROCESSED_DIR) / "opens.pkl")
+    matrices["highs_4h"].to_pickle(Path(PROCESSED_DIR) / "highs.pkl")
+    matrices["lows_4h"].to_pickle(Path(PROCESSED_DIR) / "lows.pkl")
+    matrices["closes_4h"].to_pickle(Path(PROCESSED_DIR) / "closes.pkl")
+
+    if write_quality_report:
+        build_data_quality_report(
+            closes_1d=matrices["closes_1d"],
+            closes_4h=matrices["closes_4h"],
+            expected_1d=expected_1d_df,
+            expected_4h=expected_4h_df,
+            output_path=QUALITY_REPORT_PATH,
         )
-        needed = ["Open", "High", "Low", "Close"]
-        if any(c not in df.columns for c in needed):
-            continue
 
-        # Coerce to numeric (raw CSVs can contain strings depending on locale/formatting)
-        for c in needed:
-            df[c] = pd.to_numeric(df[c], errors="coerce")
-        df = df.dropna(subset=needed)
+    return matrices
 
-        mode_bar_minutes = _infer_mode_bar_minutes(df.index)
-        if not np.isnan(mode_bar_minutes) and abs(mode_bar_minutes - 5.0) <= 0.5:
-            native_5m_assets.add(name)
-        else:
-            print(
-                f"[WARN] {name}: detected non-5m native bar spacing "
-                f"({mode_bar_minutes:.2f}m). Data kept sparse without forward-fill."
-            )
 
-        opens[name] = df["Open"]
-        highs[name] = df["High"]
-        lows[name] = df["Low"]
-        closes[name] = df["Close"]
+def load_processed_ohlc_v5(require_quality_pass: bool = True) -> Tuple[Dict[str, pd.DataFrame], Dict]:
+    ensure_dirs()
 
-    if not closes:
-        raise ValueError("No close data available to build aligned DataFrames.")
+    required_paths = {
+        name: Path(PROCESSED_DIR) / f"{name}.pkl"
+        for name in [
+            "opens_1d",
+            "highs_1d",
+            "lows_1d",
+            "closes_1d",
+            "opens_4h",
+            "highs_4h",
+            "lows_4h",
+            "closes_4h",
+        ]
+    }
 
-    opens_df = pd.DataFrame(opens).sort_index()
-    highs_df = pd.DataFrame(highs).sort_index()
-    lows_df = pd.DataFrame(lows).sort_index()
-    closes_df = pd.DataFrame(closes).sort_index()
+    if not all(path.exists() for path in required_paths.values()):
+        build_v5_matrices(write_quality_report=True)
 
-    # Enforce numeric dtype across the wide frames (any leftover strings -> NaN)
-    opens_df = opens_df.apply(pd.to_numeric, errors="coerce")
-    highs_df = highs_df.apply(pd.to_numeric, errors="coerce")
-    lows_df = lows_df.apply(pd.to_numeric, errors="coerce")
-    closes_df = closes_df.apply(pd.to_numeric, errors="coerce")
+    matrices = {name: pd.read_pickle(path) for name, path in required_paths.items()}
 
-    # Align on a 5-minute grid for a unified backtest timeline.
-    full_index = opens_df.index.union(closes_df.index).union(highs_df.index).union(lows_df.index)
-    if not isinstance(full_index, pd.DatetimeIndex):
-        full_index = pd.to_datetime(full_index, errors="coerce", utc=True).tz_convert(EASTERN_TZ)
-    full_index = full_index.dropna().unique().sort_values()
+    quality = load_data_quality_report(QUALITY_REPORT_PATH)
+    if not quality:
+        quality = build_data_quality_report(
+            closes_1d=matrices["closes_1d"],
+            closes_4h=matrices["closes_4h"],
+            expected_1d=matrices["closes_1d"].notna(),
+            expected_4h=matrices["closes_4h"].notna(),
+            output_path=QUALITY_REPORT_PATH,
+        )
 
-    start_ts = full_index.min().floor("5min")
-    end_ts = full_index.max().ceil("5min")
-    grid_index = pd.date_range(start=start_ts, end=end_ts, freq="5min", tz=EASTERN_TZ)
+    if require_quality_pass and not bool(quality.get("hard_pass", False)):
+        exclusions = quality.get("exclusions", {})
+        reasons = []
+        for asset, why in exclusions.items():
+            reasons.append(f"{asset}: {', '.join(why)}")
+        reason_text = " | ".join(reasons) if reasons else "unknown_quality_failure"
+        raise ValueError(f"v5 data-quality hard gate failed. {reason_text}")
 
-    opens_df = opens_df.reindex(grid_index)
-    highs_df = highs_df.reindex(grid_index)
-    lows_df = lows_df.reindex(grid_index)
-    closes_df = closes_df.reindex(grid_index)
-
-    # Fill only short one-bar gaps for assets that are truly native 5m.
-    for asset in opens_df.columns:
-        if asset in native_5m_assets:
-            opens_df[asset] = opens_df[asset].ffill(limit=1)
-            highs_df[asset] = highs_df[asset].ffill(limit=1)
-            lows_df[asset] = lows_df[asset].ffill(limit=1)
-            closes_df[asset] = closes_df[asset].ffill(limit=1)
-
-    # Keep each asset NaN outside its observed raw time range.
-    for col in opens_df.columns:
-        first_open = opens[col].first_valid_index()
-        last_open = opens[col].last_valid_index()
-        if first_open is not None and last_open is not None:
-            outside_range_open = (opens_df.index < first_open) | (opens_df.index > last_open)
-            opens_df.loc[outside_range_open, col] = np.nan
-
-        first_close = closes[col].first_valid_index()
-        last_close = closes[col].last_valid_index()
-        if first_close is not None and last_close is not None:
-            outside_range_close = (closes_df.index < first_close) | (closes_df.index > last_close)
-            closes_df.loc[outside_range_close, col] = np.nan
-
-    # Persist processed data (pickle avoids requiring pyarrow/fastparquet)
-    opens_df.to_pickle(os.path.join(PROCESSED_DIR, "opens.pkl"))
-    highs_df.to_pickle(os.path.join(PROCESSED_DIR, "highs.pkl"))
-    lows_df.to_pickle(os.path.join(PROCESSED_DIR, "lows.pkl"))
-    closes_df.to_pickle(os.path.join(PROCESSED_DIR, "closes.pkl"))
-
-    return opens_df, highs_df, lows_df, closes_df
+    return matrices, quality
 
 
 def load_processed_ohlc() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """
-    Load processed OHLC if already built, else build them.
-    """
-    ensure_dirs()
-    opens_path = os.path.join(PROCESSED_DIR, "opens.pkl")
-    highs_path = os.path.join(PROCESSED_DIR, "highs.pkl")
-    lows_path = os.path.join(PROCESSED_DIR, "lows.pkl")
-    closes_path = os.path.join(PROCESSED_DIR, "closes.pkl")
-
-    if all(os.path.exists(p) for p in (opens_path, highs_path, lows_path, closes_path)):
-        opens = pd.read_pickle(opens_path)
-        highs = pd.read_pickle(highs_path)
-        lows = pd.read_pickle(lows_path)
-        closes = pd.read_pickle(closes_path)
-        return opens, highs, lows, closes
-
-    return build_aligned_ohlc()
+    matrices, _ = load_processed_ohlc_v5(require_quality_pass=False)
+    return (
+        matrices["opens_4h"],
+        matrices["highs_4h"],
+        matrices["lows_4h"],
+        matrices["closes_4h"],
+    )
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Download raw OHLC data and build aligned processed datasets."
-    )
-    parser.add_argument(
-        "--start",
-        default=BACKTEST_START_DATE,
-        help=f"Start date (YYYY-MM-DD). Default: {BACKTEST_START_DATE}",
-    )
-    parser.add_argument(
-        "--end",
-        default=BACKTEST_END_DATE,
-        help=f"End date (YYYY-MM-DD). Default: {BACKTEST_END_DATE}",
-    )
-    parser.add_argument(
-        "--period",
-        default=None,
-        help="Provider period override (mainly for yfinance).",
-    )
-    parser.add_argument(
-        "--force",
-        action="store_true",
-        help="Re-download and overwrite existing raw CSVs.",
-    )
-    parser.add_argument(
-        "--build-only",
-        action="store_true",
-        help="Skip downloads and only rebuild processed pickles from raw CSVs.",
-    )
+    parser = argparse.ArgumentParser(description="Build v5 canonical 1D/4H OHLC matrices and quality gates.")
+    parser.add_argument("--start", default=BACKTEST_START_DATE)
+    parser.add_argument("--end", default=BACKTEST_END_DATE)
+    parser.add_argument("--period", default=None)
+    parser.add_argument("--force", action="store_true")
+    parser.add_argument("--build-only", action="store_true")
+    parser.add_argument("--skip-quality-report", action="store_true")
     return parser.parse_args()
 
 
-if __name__ == "__main__":
+def main() -> None:
     args = parse_args()
+
     if not args.build_only:
         download_all_assets(
             start=args.start,
@@ -401,4 +286,17 @@ if __name__ == "__main__":
             period=args.period,
             force=args.force,
         )
-    build_aligned_ohlc()
+
+    matrices = build_v5_matrices(write_quality_report=not args.skip_quality_report)
+    print("Built v5 matrices:")
+    for name in sorted(matrices.keys()):
+        print(f"- {name}: {matrices[name].shape}")
+
+    if not args.skip_quality_report:
+        quality = load_data_quality_report(QUALITY_REPORT_PATH)
+        print(f"- quality_report: {QUALITY_REPORT_PATH}")
+        print(f"- quality_hard_pass: {quality.get('hard_pass', False)}")
+
+
+if __name__ == "__main__":
+    main()

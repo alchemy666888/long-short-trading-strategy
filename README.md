@@ -1,12 +1,10 @@
-# Long/Short Mean Reversion Strategy (v3 Upgrade)
+# Long/Short Mean Reversion Strategy (v5)
 
-This repository now implements a **v3-oriented, backtest-first** long/short framework based on:
-- multi-horizon momentum (20/60/120 log-return z-scores),
-- EWMA volatility normalization,
-- quartile candidate selection,
-- correlation-aware long/short pairing,
-- ATR-based risk exits,
-- stress-friction evaluation (1.5x and 2.0x+delay scenarios).
+This repository now runs a **v5 multi-timeframe engine**:
+- `1W` regime scoring (`RISK_ON` / `NEUTRAL` / `RISK_OFF`),
+- `1D` cross-asset signal and target construction,
+- `4H` staged execution with quality gating,
+- hard data-quality gates and friction stress testing.
 
 ## 1) Setup
 
@@ -14,71 +12,82 @@ This repository now implements a **v3-oriented, backtest-first** long/short fram
 pip install -r requirements.txt
 ```
 
-Optional Polygon key for richer 5-minute history:
+Polygon API key is required (all assets now pull from Polygon):
 
 ```bash
 cp .env.example .env
 # set POLYGON_API_KEY=...
 ```
 
-## 2) Build data
+## 2) Build Data (Polygon-only, 1D + 4H + Quality Gates)
 
-Download raw data and build aligned processed OHLC pickles:
-
-```bash
-python data_pipeline.py --force --start 2025-06-01 --end 2026-01-31
-```
-
-Generated processed files:
-- `data/processed/opens.pkl`
-- `data/processed/highs.pkl`
-- `data/processed/lows.pkl`
-- `data/processed/closes.pkl`
-
-If you already have raw CSV files and only want to rebuild processed matrices:
+If you already have raw CSV files in `data/raw`, build processed v5 matrices only:
 
 ```bash
 python data_pipeline.py --build-only
 ```
 
-## 3) Run the backtest
+Or fetch fresh raw data from Polygon then build:
+
+```bash
+python data_pipeline.py --force --start 2025-06-01 --end 2026-01-31
+```
+
+Main outputs:
+- `data/processed/opens_1d.pkl`
+- `data/processed/highs_1d.pkl`
+- `data/processed/lows_1d.pkl`
+- `data/processed/closes_1d.pkl`
+- `data/processed/opens_4h.pkl`
+- `data/processed/highs_4h.pkl`
+- `data/processed/lows_4h.pkl`
+- `data/processed/closes_4h.pkl`
+- `data/processed/data_quality_report_v5.json`
+
+Backtest runs with hard data gates; if the quality report fails, the engine will stop with reasons.
+
+## 3) Run the v5 Backtest
 
 ```bash
 python backtest_vectorized.py
 ```
 
-This runs the v3-style strategy and prints the equity tail.
+This runs the base scenario and prints the latest equity values plus turnover diagnostics.
 
-## 4) Generate full report bundle
+## 4) Run Full Scenario Matrix + Report Bundle
 
 ```bash
 python backtest_report.py
 ```
 
-Outputs (timestamped directory under `data/reports/`):
-- `summary.md`
-- `summary.json`
-- `equity.csv`
-- `equity_stress_1p5x.csv`
-- `equity_stress_2p0x_delay.csv`
-- `equity_curve.png` (unless `--no-plots`)
-
-Useful options:
+Optional:
 
 ```bash
 python backtest_report.py --no-plots
 python backtest_report.py --output-dir data/reports/latest
 ```
 
-## 5) Config knobs
+Report outputs include:
+- scenario equity CSVs (`base`, `1.5x cost`, `2.0x + delay`, missing-data, liquidity, borrow/funding)
+- `summary.md`
+- `summary.json`
+- `daily_returns.csv`
+- `monthly_returns.csv`
+- `equity_curve.png` (unless `--no-plots`)
 
-Edit `long_short_config.py` for:
-- date window,
-- rebalance schedule,
-- cost assumptions by asset class,
-- leverage limits.
+## 5) Key Config Knobs
 
-## 6) Notes
+Edit `long_short_config.py` to tune:
+- regime thresholds/caps,
+- turnover controls (`NO_TRADE_BAND`, partial rebalance bounds, turnover cap),
+- execution thresholds (`EXEC_QUALITY_*`, net-edge multiple),
+- stress settings,
+- backtest window and capital.
 
-- Yahoo intraday 5m coverage is limited; Polygon is preferred for deeper history.
-- The current implementation prioritizes v3 core mechanics and stress validation flow.
+## 6) Development Plan Reference
+
+Primary plan used for this implementation:
+- `doc/vibe-coding-development-plan-long-short-mean-reversion-strategy-v5.md`
+
+Strategy spec:
+- `doc/long-short-trading-strategy-v5.md`
