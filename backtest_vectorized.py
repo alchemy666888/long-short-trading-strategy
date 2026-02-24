@@ -11,25 +11,20 @@ from long_short_config import (
     BACKTEST_START_DATE,
     CAPITAL,
     DEFAULT_TRANSACTION_COST_BPS,
-    ENTRY_Z,
-    EXIT_Z,
     MAX_GROSS_LEVERAGE,
-    MAX_POSITIONS_PER_CLASS_PER_SIDE,
-    MAX_POSITIONS_PER_SIDE,
     REBALANCE_TIMES,
-    SIGMA_FLOOR,
-    STOP_Z,
-    TOTAL_RISK_BUDGET_FRACTION,
     TRANSACTION_COST_BPS_BY_CLASS,
     TRADING_WINDOW_END,
     TRADING_WINDOW_START,
 )
 from strategy_core import (
-    compute_regime_filter,
-    compute_volatility,
-    compute_zscores,
+    build_target_weights,
+    compute_atr,
+    compute_v3_features,
     get_asset_class,
-    select_long_short_candidates,
+    pair_candidates,
+    rolling_hourly_correlation,
+    select_quartile_candidates,
 )
 
 
@@ -37,6 +32,12 @@ from strategy_core import (
 class Position:
     asset: str
     units: float
+    side: int
+    entry_price: float
+    stop_price: float
+    target_price: float
+    r_value: float
+    pair_asset: str
 
 
 def _filter_backtest_period(index: pd.DatetimeIndex) -> pd.DatetimeIndex:
@@ -48,243 +49,155 @@ def _filter_backtest_period(index: pd.DatetimeIndex) -> pd.DatetimeIndex:
 def _build_session_index() -> pd.DatetimeIndex:
     start_ts = pd.Timestamp(BACKTEST_START_DATE, tz="US/Eastern")
     end_ts_exclusive = pd.Timestamp(BACKTEST_END_DATE, tz="US/Eastern") + pd.Timedelta(days=1)
-    full_index = pd.date_range(
-        start=start_ts,
-        end=end_ts_exclusive - pd.Timedelta(minutes=5),
-        freq="5min",
-        tz="US/Eastern",
-    )
+    full_index = pd.date_range(start=start_ts, end=end_ts_exclusive - pd.Timedelta(minutes=5), freq="5min", tz="US/Eastern")
     full_index = full_index[full_index.dayofweek < 5]
     trading_index = full_index.indexer_between_time(TRADING_WINDOW_START, TRADING_WINDOW_END)
     return full_index[trading_index]
 
 
-def _cost_bps_for_asset(asset: str) -> float:
+def _cost_bps_for_asset(asset: str, multiplier: float = 1.0) -> float:
     asset_class = get_asset_class(asset)
-    return float(TRANSACTION_COST_BPS_BY_CLASS.get(asset_class, DEFAULT_TRANSACTION_COST_BPS))
+    return float(TRANSACTION_COST_BPS_BY_CLASS.get(asset_class, DEFAULT_TRANSACTION_COST_BPS)) * multiplier
 
 
-def run_backtest() -> pd.DataFrame:
-    opens, closes = load_processed_ohlc()
+def run_backtest(cost_multiplier: float = 1.0, one_bar_delay: bool = False) -> pd.DataFrame:
+    opens, highs, lows, closes = load_processed_ohlc()
 
-    # Build explicit session timeline from configured backtest window.
     session_index = _build_session_index()
     session_index = _filter_backtest_period(session_index.sort_values())
-
-    if session_index.empty:
-        raise ValueError(
-            "No bars available for configured backtest period "
-            f"{BACKTEST_START_DATE} to {BACKTEST_END_DATE}."
-        )
-
     opens = opens.reindex(session_index)
+    highs = highs.reindex(session_index)
+    lows = lows.reindex(session_index)
     closes = closes.reindex(session_index)
 
     available_mask = closes.notna().any(axis=1)
     if not available_mask.any():
-        raise ValueError(
-            "No price observations exist within the configured backtest timeline. "
-            "Download data first or broaden provider coverage."
-        )
+        raise ValueError("No price observations exist within the configured backtest timeline.")
 
-    configured_start = pd.Timestamp(BACKTEST_START_DATE, tz="US/Eastern").date()
-    configured_end = pd.Timestamp(BACKTEST_END_DATE, tz="US/Eastern").date()
-    first_obs_idx = int(np.argmax(available_mask.values))
-    last_obs_idx = int(np.where(available_mask.values)[0][-1])
-    actual_start = closes.index[first_obs_idx]
-    actual_end = closes.index[last_obs_idx]
-    if actual_start.date() > configured_start or actual_end.date() < configured_end:
-        warnings.warn(
-            "Backtest period is constrained by available data. "
-            f"Requested: {BACKTEST_START_DATE} to {BACKTEST_END_DATE}. "
-            f"Effective: {actual_start} to {actual_end}.",
-            RuntimeWarning,
-            stacklevel=2,
-        )
-    zscores = compute_zscores(closes)
-    volatility = compute_volatility(closes)
-    regime_ok = compute_regime_filter(closes)
+    actual_start = closes.index[int(np.argmax(available_mask.values))]
+    actual_end = closes.index[int(np.where(available_mask.values)[0][-1])]
+    if actual_start.date() > pd.Timestamp(BACKTEST_START_DATE).date() or actual_end.date() < pd.Timestamp(BACKTEST_END_DATE).date():
+        warnings.warn(f"Effective backtest period constrained by data: {actual_start} to {actual_end}", RuntimeWarning, stacklevel=2)
 
-    capital = CAPITAL
-    cash = capital
+    m_star, ewma_vol, stretch = compute_v3_features(closes)
+    atr = compute_atr(highs=highs, lows=lows, closes=closes, lookback=20)
+    corr_by_hour = rolling_hourly_correlation(closes)
+
+    cash = float(CAPITAL)
     positions: Dict[str, Position] = {}
     equity_curve: List[float] = []
     equity_index: List[pd.Timestamp] = []
 
-    # Tracks the first rebalance event ID on which an asset can be entered again
-    # after a bar-based TP/stop exit.
-    reentry_allowed_from_rebalance: Dict[str, int] = {}
-    next_rebalance_id = 1
-
     for i, ts in enumerate(closes.index):
         price_row_open = opens.loc[ts]
         price_row_close = closes.loc[ts]
-        z_prev = zscores.iloc[i - 1] if i > 0 else None
-        z_prev2 = zscores.iloc[i - 2] if i > 1 else None
-        vol_prev = volatility.iloc[i - 1] if i > 0 else None
-        signal_ts = closes.index[i - 1] if i > 0 else None
-        should_rebalance = (
-            signal_ts is not None
-            and signal_ts.strftime("%H:%M") in REBALANCE_TIMES
-            and z_prev is not None
-            and vol_prev is not None
-            and bool(regime_ok.get(signal_ts, True))
-        )
 
-        # Execute bar-based exit signals at current open (next-bar execution).
-        # We trigger exits based on the previous bar close's Z-score.
-        if z_prev is not None and positions:
+        signal_idx = i - (2 if one_bar_delay else 1)
+        signal_ts = closes.index[signal_idx] if signal_idx >= 0 else None
+        scores = m_star.iloc[signal_idx] if signal_idx >= 0 else None
+        vol = ewma_vol.iloc[signal_idx] if signal_idx >= 0 else None
+        stretch_signal = stretch.iloc[signal_idx] if signal_idx >= 0 else None
+        atr_signal = atr.iloc[signal_idx] if signal_idx >= 0 else None
+
+        # exits first
+        if positions:
+            rank_scores = scores if scores is not None else pd.Series(dtype=float)
+            median_score = rank_scores.median() if len(rank_scores.dropna()) else np.nan
             for asset, pos in list(positions.items()):
-                if asset not in z_prev.index:
-                    continue
-                prev_z = z_prev[asset]
-                if np.isnan(prev_z):
-                    continue
+                low = lows.loc[ts].get(asset, np.nan)
+                high = highs.loc[ts].get(asset, np.nan)
+                open_px = price_row_open.get(asset, np.nan)
+                close_px = price_row_close.get(asset, np.nan)
+                exit_price = np.nan
 
-                prev2_z = np.nan
-                if z_prev2 is not None and asset in z_prev2.index:
-                    prev2_z = z_prev2[asset]
-
-                is_long = pos.units > 0
-                if is_long:
-                    crossed_exit = (
-                        (not np.isnan(prev2_z) and prev2_z < -EXIT_Z <= prev_z)
-                        or (np.isnan(prev2_z) and prev_z >= -EXIT_Z)
-                    )
-                    exit_due_to_stop = prev_z < -STOP_Z
+                if pos.side > 0:
+                    if not np.isnan(low) and low <= pos.stop_price:
+                        exit_price = pos.stop_price
+                    elif not np.isnan(high) and high >= pos.target_price:
+                        exit_price = pos.target_price
                 else:
-                    crossed_exit = (
-                        (not np.isnan(prev2_z) and prev2_z > EXIT_Z >= prev_z)
-                        or (np.isnan(prev2_z) and prev_z <= EXIT_Z)
-                    )
-                    exit_due_to_stop = prev_z > STOP_Z
-                exit_due_to_tp = crossed_exit
+                    if not np.isnan(high) and high >= pos.stop_price:
+                        exit_price = pos.stop_price
+                    elif not np.isnan(low) and low <= pos.target_price:
+                        exit_price = pos.target_price
 
-                if not (exit_due_to_tp or exit_due_to_stop):
-                    continue
+                if np.isnan(exit_price) and asset in rank_scores.index and not np.isnan(median_score):
+                    if pos.side > 0 and rank_scores[asset] < median_score:
+                        exit_price = open_px
+                    if pos.side < 0 and rank_scores[asset] > median_score:
+                        exit_price = open_px
 
-                exit_price = price_row_open.get(asset, np.nan)
-                if np.isnan(exit_price) or exit_price <= 0:
-                    exit_price = price_row_close.get(asset, np.nan)
-                    if np.isnan(exit_price) or exit_price <= 0:
-                        continue
+                if ts.strftime("%H:%M") == "15:55" and np.isnan(exit_price):
+                    exit_price = close_px
 
-                notional = abs(pos.units * exit_price)
-                cost_bps = _cost_bps_for_asset(asset)
-                cost = notional * (cost_bps / 10000)
-                cash += pos.units * exit_price
-                cash -= cost
-                del positions[asset]
-                # If an exit is processed on a rebalance bar, prevent same-bar
-                # re-entry and wait until the following rebalance event.
-                reentry_allowed_from_rebalance[asset] = (
-                    next_rebalance_id + 1 if should_rebalance else next_rebalance_id
-                )
-
-        # Rebalance uses the previous bar close signal and current bar open execution.
-        if should_rebalance:
-            long_candidates, short_candidates = select_long_short_candidates(
-                zscores=z_prev,
-                max_per_side=MAX_POSITIONS_PER_SIDE,
-                max_per_class=MAX_POSITIONS_PER_CLASS_PER_SIDE,
-                entry_z=ENTRY_Z,
-            )
-
-            # Close all existing positions at current open
-            for asset, pos in list(positions.items()):
-                exit_price = price_row_open.get(asset, np.nan)
-                if np.isnan(exit_price) or exit_price <= 0:
-                    exit_price = price_row_close.get(asset, np.nan)
-                    if np.isnan(exit_price) or exit_price <= 0:
-                        continue
-                notional = abs(pos.units * exit_price)
-                cost_bps = _cost_bps_for_asset(asset)
-                cost = notional * (cost_bps / 10000)
-                cash += pos.units * exit_price
-                cash -= cost
-                del positions[asset]
-
-            def is_tradeable(asset: str) -> bool:
-                if reentry_allowed_from_rebalance.get(asset, 1) > next_rebalance_id:
-                    return False
-                sigma = vol_prev.get(asset, np.nan)
-                price = price_row_open.get(asset, np.nan)
-                return (
-                    not np.isnan(sigma)
-                    and sigma > 0
-                    and not np.isnan(price)
-                    and price > 0
-                )
-
-            valid_longs = [a for a in long_candidates if is_tradeable(a)]
-            valid_shorts = [a for a in short_candidates if is_tradeable(a)]
-            n = min(len(valid_longs), len(valid_shorts), MAX_POSITIONS_PER_SIDE)
-            longs = valid_longs[:n]
-            shorts = valid_shorts[:n]
-
-            if longs and shorts:
-                capital_base = max(float(cash), 0.0)
-                total_risk_budget = capital_base * TOTAL_RISK_BUDGET_FRACTION
-                per_position_risk = total_risk_budget / (2 * n)
-
-                # Build raw targets
-                target_units: Dict[str, float] = {}
-                for asset in longs + shorts:
-                    side = 1 if asset in longs else -1
-                    sigma_eff = max(float(vol_prev[asset]), SIGMA_FLOOR)
-                    price = float(price_row_open[asset])
-                    target_notional = per_position_risk / sigma_eff
-                    units = (target_notional / price) * side
-                    if np.isnan(units) or units == 0:
-                        continue
-                    target_units[asset] = float(units)
-
-                # Enforce gross leverage cap
-                gross = sum(abs(u * price_row_open[a]) for a, u in target_units.items())
-                max_gross = capital_base * MAX_GROSS_LEVERAGE
-                scale = 1.0
-                if gross > 0 and gross > max_gross:
-                    scale = max_gross / gross
-
-                for asset, units in target_units.items():
-                    price = float(price_row_open[asset])
-                    units *= scale
-                    notional = abs(units * price)
-                    cost_bps = _cost_bps_for_asset(asset)
-                    cost = notional * (cost_bps / 10000)
-                    cash -= units * price
-                    cash -= cost
-                    positions[asset] = Position(asset=asset, units=units)
-
-            next_rebalance_id += 1
-
-        # End-of-day liquidation at 15:55 close (per spec).
-        if ts.strftime("%H:%M") == "15:55" and positions:
-            for asset, pos in list(positions.items()):
-                exit_price = price_row_close.get(asset, np.nan)
                 if np.isnan(exit_price) or exit_price <= 0:
                     continue
+
                 notional = abs(pos.units * exit_price)
-                cost_bps = _cost_bps_for_asset(asset)
-                cost = notional * (cost_bps / 10000)
-                cash += pos.units * exit_price
-                cash -= cost
+                cost = notional * (_cost_bps_for_asset(asset, cost_multiplier) / 10000)
+                cash += pos.units * exit_price - cost
                 del positions[asset]
 
-        # Mark-to-market portfolio
+        should_rebalance = signal_ts is not None and signal_ts.strftime("%H:%M") in REBALANCE_TIMES
+        if should_rebalance and scores is not None and vol is not None and atr_signal is not None and stretch_signal is not None:
+            longs, shorts = select_quartile_candidates(scores)
+            longs = [a for a in longs if stretch_signal.get(a, np.nan) <= 2.5]
+            shorts = [a for a in shorts if stretch_signal.get(a, np.nan) >= -2.5]
+
+            hour_key = signal_ts.floor("1h")
+            corr = corr_by_hour.get(hour_key)
+            pairs = pair_candidates(longs=longs, shorts=shorts, scores=scores, corr=corr)
+            weights = build_target_weights(pairs=pairs, vol=vol, scores=scores)
+
+            for asset, weight in weights.items():
+                if asset in positions:
+                    continue
+                px = price_row_open.get(asset, np.nan)
+                atr_val = atr_signal.get(asset, np.nan)
+                if np.isnan(px) or px <= 0 or np.isnan(atr_val) or atr_val <= 0:
+                    continue
+
+                stop_dist = 1.25 * float(atr_val)
+                target_dist = 2.25 * float(atr_val)
+                expected_edge = abs(scores.get(asset, np.nan))
+                roundtrip_cost = 2 * (_cost_bps_for_asset(asset, cost_multiplier) / 10000)
+                if np.isnan(expected_edge) or expected_edge <= (roundtrip_cost + 0.02):
+                    continue
+
+                alloc_notional = CAPITAL * min(abs(weight), 0.35)
+                units = alloc_notional / px
+                side = 1 if weight > 0 else -1
+                units *= side
+
+                gross_after = sum(abs(p.units * price_row_open.get(a, np.nan)) for a, p in positions.items()) + abs(units * px)
+                if gross_after > CAPITAL * MAX_GROSS_LEVERAGE:
+                    continue
+
+                entry_notional = abs(units * px)
+                entry_cost = entry_notional * (_cost_bps_for_asset(asset, cost_multiplier) / 10000)
+                cash -= units * px + entry_cost
+
+                if side > 0:
+                    stop_price = px - stop_dist
+                    target_price = px + target_dist
+                else:
+                    stop_price = px + stop_dist
+                    target_price = px - target_dist
+
+                pair_asset = next((s for l, s in pairs if l == asset), next((l for l, s in pairs if s == asset), ""))
+                positions[asset] = Position(asset=asset, units=units, side=side, entry_price=px, stop_price=stop_price, target_price=target_price, r_value=stop_dist, pair_asset=pair_asset)
+
         portfolio_value = cash
         for asset, pos in positions.items():
-            if np.isnan(price_row_close[asset]):
-                continue
-            portfolio_value += pos.units * price_row_close[asset]
+            px = price_row_close.get(asset, np.nan)
+            if not np.isnan(px):
+                portfolio_value += pos.units * px
 
         equity_index.append(ts)
         equity_curve.append(portfolio_value)
 
-    equity_series = pd.Series(equity_curve, index=equity_index, name="equity")
-    return equity_series.to_frame()
+    return pd.Series(equity_curve, index=equity_index, name="equity").to_frame()
 
 
 if __name__ == "__main__":
-    equity = run_backtest()
-    print(equity.tail())
+    print(run_backtest().tail())

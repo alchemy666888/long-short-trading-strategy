@@ -229,15 +229,17 @@ def _infer_mode_bar_minutes(index: pd.DatetimeIndex) -> float:
     return float(diffs.mode().iloc[0])
 
 
-def build_aligned_ohlc() -> Tuple[pd.DataFrame, pd.DataFrame]:
+def build_aligned_ohlc() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
-    Build aligned 5-minute Open and Close DataFrames for all assets.
+    Build aligned 5-minute OHLC DataFrames for all assets.
 
     Returns:
-        opens, closes: wide DataFrames with datetime index and one column per asset.
+        opens, highs, lows, closes: wide DataFrames with datetime index and one column per asset.
     """
     ensure_dirs()
     opens: Dict[str, pd.Series] = {}
+    highs: Dict[str, pd.Series] = {}
+    lows: Dict[str, pd.Series] = {}
     closes: Dict[str, pd.Series] = {}
     native_5m_assets = set()
 
@@ -255,13 +257,14 @@ def build_aligned_ohlc() -> Tuple[pd.DataFrame, pd.DataFrame]:
                 for col in df.columns
             }
         )
-        if "Open" not in df.columns or "Close" not in df.columns:
+        needed = ["Open", "High", "Low", "Close"]
+        if any(c not in df.columns for c in needed):
             continue
 
         # Coerce to numeric (raw CSVs can contain strings depending on locale/formatting)
-        df["Open"] = pd.to_numeric(df["Open"], errors="coerce")
-        df["Close"] = pd.to_numeric(df["Close"], errors="coerce")
-        df = df.dropna(subset=["Open", "Close"])
+        for c in needed:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+        df = df.dropna(subset=needed)
 
         mode_bar_minutes = _infer_mode_bar_minutes(df.index)
         if not np.isnan(mode_bar_minutes) and abs(mode_bar_minutes - 5.0) <= 0.5:
@@ -273,20 +276,26 @@ def build_aligned_ohlc() -> Tuple[pd.DataFrame, pd.DataFrame]:
             )
 
         opens[name] = df["Open"]
+        highs[name] = df["High"]
+        lows[name] = df["Low"]
         closes[name] = df["Close"]
 
     if not closes:
         raise ValueError("No close data available to build aligned DataFrames.")
 
     opens_df = pd.DataFrame(opens).sort_index()
+    highs_df = pd.DataFrame(highs).sort_index()
+    lows_df = pd.DataFrame(lows).sort_index()
     closes_df = pd.DataFrame(closes).sort_index()
 
     # Enforce numeric dtype across the wide frames (any leftover strings -> NaN)
     opens_df = opens_df.apply(pd.to_numeric, errors="coerce")
+    highs_df = highs_df.apply(pd.to_numeric, errors="coerce")
+    lows_df = lows_df.apply(pd.to_numeric, errors="coerce")
     closes_df = closes_df.apply(pd.to_numeric, errors="coerce")
 
     # Align on a 5-minute grid for a unified backtest timeline.
-    full_index = opens_df.index.union(closes_df.index)
+    full_index = opens_df.index.union(closes_df.index).union(highs_df.index).union(lows_df.index)
     if not isinstance(full_index, pd.DatetimeIndex):
         full_index = pd.to_datetime(full_index, errors="coerce", utc=True).tz_convert(EASTERN_TZ)
     full_index = full_index.dropna().unique().sort_values()
@@ -296,12 +305,16 @@ def build_aligned_ohlc() -> Tuple[pd.DataFrame, pd.DataFrame]:
     grid_index = pd.date_range(start=start_ts, end=end_ts, freq="5min", tz=EASTERN_TZ)
 
     opens_df = opens_df.reindex(grid_index)
+    highs_df = highs_df.reindex(grid_index)
+    lows_df = lows_df.reindex(grid_index)
     closes_df = closes_df.reindex(grid_index)
 
     # Fill only short one-bar gaps for assets that are truly native 5m.
     for asset in opens_df.columns:
         if asset in native_5m_assets:
             opens_df[asset] = opens_df[asset].ffill(limit=1)
+            highs_df[asset] = highs_df[asset].ffill(limit=1)
+            lows_df[asset] = lows_df[asset].ffill(limit=1)
             closes_df[asset] = closes_df[asset].ffill(limit=1)
 
     # Keep each asset NaN outside its observed raw time range.
@@ -320,23 +333,29 @@ def build_aligned_ohlc() -> Tuple[pd.DataFrame, pd.DataFrame]:
 
     # Persist processed data (pickle avoids requiring pyarrow/fastparquet)
     opens_df.to_pickle(os.path.join(PROCESSED_DIR, "opens.pkl"))
+    highs_df.to_pickle(os.path.join(PROCESSED_DIR, "highs.pkl"))
+    lows_df.to_pickle(os.path.join(PROCESSED_DIR, "lows.pkl"))
     closes_df.to_pickle(os.path.join(PROCESSED_DIR, "closes.pkl"))
 
-    return opens_df, closes_df
+    return opens_df, highs_df, lows_df, closes_df
 
 
-def load_processed_ohlc() -> Tuple[pd.DataFrame, pd.DataFrame]:
+def load_processed_ohlc() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
-    Load processed opens and closes if already built, else build them.
+    Load processed OHLC if already built, else build them.
     """
     ensure_dirs()
     opens_path = os.path.join(PROCESSED_DIR, "opens.pkl")
+    highs_path = os.path.join(PROCESSED_DIR, "highs.pkl")
+    lows_path = os.path.join(PROCESSED_DIR, "lows.pkl")
     closes_path = os.path.join(PROCESSED_DIR, "closes.pkl")
 
-    if os.path.exists(opens_path) and os.path.exists(closes_path):
+    if all(os.path.exists(p) for p in (opens_path, highs_path, lows_path, closes_path)):
         opens = pd.read_pickle(opens_path)
+        highs = pd.read_pickle(highs_path)
+        lows = pd.read_pickle(lows_path)
         closes = pd.read_pickle(closes_path)
-        return opens, closes
+        return opens, highs, lows, closes
 
     return build_aligned_ohlc()
 
