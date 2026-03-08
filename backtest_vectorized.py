@@ -2,18 +2,40 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 
+from analysis_report_builder import build_daily_reports
+from analysis_scoring import (
+    apply_overlay_ablation,
+    build_overlay_frames,
+    compute_conflict_multipliers,
+    compute_v6_scores,
+    overlay_summary_table,
+)
 from data_pipeline import load_processed_ohlc_v5
 from execution_queue import execute_order_slice, build_execution_features
+from idea_engine import build_daily_idea_table, enforce_theme_concentration_cap
 from long_short_config import (
+    ANALYSIS_CUTOFF_HOUR_ET,
+    ANALYSIS_IDEAS_PATH,
+    ANALYSIS_MACRO_CALENDAR_PATH,
+    ANALYSIS_MAX_THEME_SHARE,
+    ANALYSIS_MIN_REPORT_RELIABILITY,
+    ANALYSIS_MIN_SCENARIO_CONFIDENCE,
+    ANALYSIS_MIN_SOURCES_PER_CATALYST,
+    ANALYSIS_NEWS_PATH,
+    ANALYSIS_OVERLAYS_PATH,
+    ANALYSIS_REPORTS_DIR,
     ASSETS,
     ATR_LOOKBACK_DAYS,
     BACKTEST_END_DATE,
+    BACKTEST_LEVERAGE_MULTIPLIER,
     BACKTEST_START_DATE,
+    BETA_BY_ASSET,
     BREADTH_MAX_CATEGORY_SHARE,
     BREADTH_MIN_ACTIVE_ASSETS,
     BREADTH_MIN_CATEGORIES,
@@ -36,17 +58,26 @@ from long_short_config import (
     PANIC_MOMENTUM_MULTIPLIER,
     PARTIAL_REBALANCE_MAX_STEP,
     PARTIAL_REBALANCE_MIN_STEP,
+    STRATEGY_VERSION,
     TIME_STOP_DAYS,
     TRAIL_ACTIVATION_R,
     TRAIL_ATR_MULTIPLE,
     TRANSACTION_COST_BPS_BY_CLASS,
+    V6_CRISIS_LONG_REDUCTION,
+    V6_CRISIS_MACRO_THRESHOLD,
+    V6_HIGH_BETA_CLASSES,
+    V6_REPORT_GROSS_SCALE_BASE,
+    V6_REPORT_GROSS_SCALE_MULT,
+    V6_SEVERE_UNCERTAINTY_GROSS_CAP,
 )
+from macro_calendar import load_macro_calendar, macro_coverage_diagnostics
+from news_pipeline import load_historical_news, news_coverage_diagnostics
 from regime import build_regime_context
 from strategy_core import (
+    build_daily_target_weights,
     compute_atr,
     compute_shrunk_covariance,
     compute_v5_daily_stack,
-    build_daily_target_weights,
     enforce_weight_constraints,
     get_asset_class,
 )
@@ -149,6 +180,17 @@ def _apply_missing_data_stress(
     return c1, c4
 
 
+def _persist_analysis_artifacts(overlay_table: pd.DataFrame, idea_table: pd.DataFrame) -> None:
+    overlay_path = Path(ANALYSIS_OVERLAYS_PATH)
+    idea_path = Path(ANALYSIS_IDEAS_PATH)
+
+    overlay_path.parent.mkdir(parents=True, exist_ok=True)
+    idea_path.parent.mkdir(parents=True, exist_ok=True)
+
+    overlay_table.to_pickle(overlay_path)
+    idea_table.to_pickle(idea_path)
+
+
 def run_backtest(
     cost_multiplier: float = 1.0,
     one_day_delay: bool = False,
@@ -156,7 +198,17 @@ def run_backtest(
     liquidity_haircut: float = 1.0,
     short_borrow_bps_per_day: float = 0.0,
     seed: int = 7,
+    leverage_multiplier: float = BACKTEST_LEVERAGE_MULTIPLIER,
+    strategy_version: str = STRATEGY_VERSION,
+    analysis_ablation: Optional[str] = None,
+    persist_analysis_artifacts: bool = False,
 ) -> Dict:
+    strategy_version = str(strategy_version).lower().strip()
+    if strategy_version not in {"v5", "v6"}:
+        raise ValueError(f"Unsupported strategy version: {strategy_version}")
+    if leverage_multiplier <= 0:
+        raise ValueError(f"leverage_multiplier must be > 0, got {leverage_multiplier}")
+
     matrices, quality_report = load_processed_ohlc_v5(require_quality_pass=True)
 
     opens_1d = matrices["opens_1d"].copy()
@@ -186,7 +238,7 @@ def run_backtest(
     if len(daily_index) < 200:
         raise ValueError(
             f"Not enough daily bars in backtest range ({len(daily_index)}). "
-            "Build longer history before running v5."
+            "Build longer history before running backtest."
         )
 
     opens_1d = opens_1d.reindex(daily_index)
@@ -197,7 +249,7 @@ def run_backtest(
     eligible_assets = quality_report.get("breadth", {}).get("eligible_assets_list", [])
     assets = [asset for asset in closes_1d.columns if asset in ASSETS and asset in eligible_assets]
     if not assets:
-        raise ValueError("No eligible assets remain after v5 data-quality gating.")
+        raise ValueError("No eligible assets remain after data-quality gating.")
     closes_1d = closes_1d[assets]
     opens_1d = opens_1d[assets]
     highs_1d = highs_1d[assets]
@@ -205,7 +257,7 @@ def run_backtest(
 
     regime_df, weekly_score_daily = build_regime_context(closes_1d)
     signal_bundle = compute_v5_daily_stack(closes_1d=closes_1d, weekly_score_daily=weekly_score_daily)
-    score = signal_bundle["score"]
+    base_score = signal_bundle["score"]
     vol = signal_bundle["vol"]
     daily_returns = signal_bundle["returns"]
     atr14 = compute_atr(highs_1d, lows_1d, closes_1d, lookback=ATR_LOOKBACK_DAYS)
@@ -239,14 +291,72 @@ def run_backtest(
     dd20_flat = 0
     corr_cap_active = False
 
+    score_for_target = base_score
+    conflict_multipliers = pd.DataFrame(1.0, index=base_score.index, columns=base_score.columns)
+
+    reports_by_day: Dict[pd.Timestamp, Dict] = {}
+    overlays: Dict[str, object] = {}
+    overlay_table = pd.DataFrame(index=daily_index)
+    idea_rows: List[pd.DataFrame] = []
+    analysis_daily_ledger: List[Dict] = []
+
+    analysis_data_diagnostics = {
+        "news": {"rows": 0, "days": 0, "sources": 0, "asset_classes": {}, "regions": {}, "catalysts": {}},
+        "macro": {"rows": 0, "days": 0, "regions": {}, "importance": {}},
+    }
+
+    if strategy_version == "v6":
+        news_df = load_historical_news(path=ANALYSIS_NEWS_PATH)
+        macro_df = load_macro_calendar(path=ANALYSIS_MACRO_CALENDAR_PATH)
+
+        analysis_data_diagnostics = {
+            "news": news_coverage_diagnostics(news_df),
+            "macro": macro_coverage_diagnostics(macro_df),
+        }
+
+        report_output_dir = ANALYSIS_REPORTS_DIR if persist_analysis_artifacts else None
+        reports_by_day = build_daily_reports(
+            daily_index=daily_index,
+            closes_1d=closes_1d,
+            assets=assets,
+            asset_class_by_asset={asset: get_asset_class(asset) for asset in assets},
+            news_df=news_df,
+            macro_df=macro_df,
+            cutoff_hour_et=ANALYSIS_CUTOFF_HOUR_ET,
+            min_sources_per_catalyst=ANALYSIS_MIN_SOURCES_PER_CATALYST,
+            output_dir=report_output_dir,
+        )
+
+        overlays = build_overlay_frames(
+            reports_by_day=reports_by_day,
+            assets=assets,
+            asset_class_by_asset={asset: get_asset_class(asset) for asset in assets},
+        )
+        overlays = apply_overlay_ablation(overlays, analysis_ablation)
+
+        score_for_target = compute_v6_scores(
+            base_scores=base_score,
+            overlays=overlays,
+            asset_class_by_asset={asset: get_asset_class(asset) for asset in assets},
+            beta_by_asset=BETA_BY_ASSET,
+        )
+
+        conflict_multipliers = compute_conflict_multipliers(
+            base_scores=base_score,
+            asset_overlay=overlays["asset_overlay"],
+        )
+
+        overlay_table = overlay_summary_table(overlays=overlays)
+
     for i in range(1, len(daily_index)):
         ts = daily_index[i]
         prev_equity = equity
 
+        effective_weights = weights * float(leverage_multiplier)
         ret_row = daily_returns.loc[ts].reindex(assets).fillna(0.0)
-        gross_short = float((-weights[weights < 0]).sum())
+        gross_short = float((-effective_weights[effective_weights < 0]).sum())
         borrow_cost_return = gross_short * (short_borrow_bps_per_day / 10000.0)
-        pnl_return = float((weights * ret_row).sum()) - borrow_cost_return
+        pnl_return = float((effective_weights * ret_row).sum()) - borrow_cost_return
         equity *= max(0.0, 1.0 + pnl_return)
 
         forced_exit_assets = []
@@ -285,7 +395,7 @@ def run_backtest(
                     forced_exit_assets.append((asset, "stop_loss"))
                     continue
 
-            score_now = score.at[ts, asset] if asset in score.columns else np.nan
+            score_now = score_for_target.at[ts, asset] if asset in score_for_target.columns else np.nan
             if st.hold_days >= TIME_STOP_DAYS and (np.isnan(score_now) or abs(score_now) < 0.25):
                 forced_exit_assets.append((asset, "time_stop"))
 
@@ -296,7 +406,7 @@ def run_backtest(
 
             delta = -cur
             bps = _cost_bps_for_asset(asset, cost_multiplier)
-            cost = abs(delta) * equity * (bps / 10000.0)
+            cost = abs(delta) * float(leverage_multiplier) * equity * (bps / 10000.0)
             equity -= cost
             cost_drag_by_class[get_asset_class(asset)] += cost
             weights.at[asset] = 0.0
@@ -322,7 +432,7 @@ def run_backtest(
         regime_cap = float(regime_row.get("leverage_cap", 1.0))
         side_tilt = float(regime_row.get("side_tilt", 0.0))
 
-        score_row = score.loc[ts].reindex(assets)
+        score_row = score_for_target.loc[ts].reindex(assets)
         if bool(regime_row.get("panic", False)):
             score_row = score_row * PANIC_MOMENTUM_MULTIPLIER
             regime_cap = min(regime_cap, PANIC_GROSS_CAP)
@@ -331,6 +441,32 @@ def run_backtest(
             regime_cap *= max(0.0, 1.0 - DD_5D_GROSS_REDUCTION)
         if dd20_flat > 0:
             regime_cap = 0.0
+
+        report_valid = True
+        c_t = 1.0
+        q_t = 1.0
+        m_t = 0.0
+        event_mult = 1.0
+        theme_by_asset: Dict[str, str] = {}
+
+        if strategy_version == "v6":
+            report_valid = bool(overlays["report_valid"].get(ts, False))
+            c_t = float(overlays["scenario_confidence"].get(ts, 0.0))
+            q_t = float(overlays["reliability"].get(ts, 0.0))
+            m_t = float(overlays["macro_overlay"].get(ts, 0.0))
+            event_mult = float(overlays["event_risk_multiplier"].get(ts, 1.0))
+            theme_by_asset = overlays["theme_by_day"].get(ts, {})
+
+            conf_scale = V6_REPORT_GROSS_SCALE_BASE + (V6_REPORT_GROSS_SCALE_MULT * c_t * q_t)
+            regime_cap *= max(0.0, conf_scale)
+            regime_cap *= event_mult
+
+            if analysis_ablation != "no_quality":
+                if c_t < ANALYSIS_MIN_SCENARIO_CONFIDENCE or q_t < ANALYSIS_MIN_REPORT_RELIABILITY:
+                    regime_cap = min(regime_cap, V6_SEVERE_UNCERTAINTY_GROSS_CAP)
+                if not report_valid:
+                    regime_cap = 0.0
+                    risk_events.append({"timestamp": str(ts), "event": "report_invalid_derisk_only"})
 
         corr_window = daily_returns.loc[:ts, assets].tail(CORR_LOOKBACK_DAYS)
         avg_corr = _average_pairwise_corr(corr_window)
@@ -357,30 +493,39 @@ def run_backtest(
         cov_window = daily_returns.loc[:ts, assets].tail(120)
         cov_matrix = compute_shrunk_covariance(cov_window)
 
-        target, target_diag = build_daily_target_weights(
-            score_row=score_row,
-            vol_row=vol.loc[ts].reindex(assets),
-            prev_weights=weights,
-            cov_matrix=cov_matrix,
-            gross_cap=max(0.0, regime_cap),
-            side_tilt=side_tilt,
-            min_per_side=4,
-        )
-
-        if (
-            target_diag.get("active_assets", 0) < BREADTH_MIN_ACTIVE_ASSETS
-            or target_diag.get("active_categories", 0) < BREADTH_MIN_CATEGORIES
-            or target_diag.get("max_category_share", 1.0) > BREADTH_MAX_CATEGORY_SHARE
-        ):
-            target = pd.Series(0.0, index=assets)
-            risk_events.append(
-                {
-                    "timestamp": str(ts),
-                    "event": "breadth_gate_block",
-                    "active_assets": int(target_diag.get("active_assets", 0)),
-                    "active_categories": int(target_diag.get("active_categories", 0)),
-                }
+        if strategy_version == "v6" and (analysis_ablation != "no_quality") and (not report_valid):
+            target = (weights * 0.5).reindex(assets).fillna(0.0)
+            target_diag = {
+                "active_assets": int((target.abs() > 1e-8).sum()),
+                "active_categories": int(len(set(get_asset_class(a) for a in target[target.abs() > 1e-8].index))),
+                "max_category_share": float(1.0),
+                "reason": "report_invalid_derisk_only",
+            }
+        else:
+            target, target_diag = build_daily_target_weights(
+                score_row=score_row,
+                vol_row=vol.loc[ts].reindex(assets),
+                prev_weights=weights,
+                cov_matrix=cov_matrix,
+                gross_cap=max(0.0, regime_cap),
+                side_tilt=side_tilt,
+                min_per_side=4,
             )
+
+            if (
+                target_diag.get("active_assets", 0) < BREADTH_MIN_ACTIVE_ASSETS
+                or target_diag.get("active_categories", 0) < BREADTH_MIN_CATEGORIES
+                or target_diag.get("max_category_share", 1.0) > BREADTH_MAX_CATEGORY_SHARE
+            ):
+                target = pd.Series(0.0, index=assets)
+                risk_events.append(
+                    {
+                        "timestamp": str(ts),
+                        "event": "breadth_gate_block",
+                        "active_assets": int(target_diag.get("active_assets", 0)),
+                        "active_categories": int(target_diag.get("active_categories", 0)),
+                    }
+                )
 
         for asset, st in states.items():
             if st.hold_days >= MIN_HOLD_DAYS:
@@ -389,6 +534,60 @@ def run_backtest(
             tgt = float(target.get(asset, 0.0))
             if np.sign(cur) != np.sign(tgt) or abs(tgt) < abs(cur):
                 target.at[asset] = cur
+
+        if strategy_version == "v6":
+            asset_overlay_row = overlays["asset_overlay"].loc[ts].reindex(assets).fillna(0.0)
+            cost_bps_by_asset = {asset: _cost_bps_for_asset(asset, cost_multiplier) for asset in assets}
+
+            idea_table_day = build_daily_idea_table(
+                ts=ts,
+                assets=assets,
+                scores_row=score_row,
+                asset_overlay_row=asset_overlay_row,
+                scenario_confidence=c_t,
+                reliability=q_t,
+                report_valid=report_valid,
+                cost_bps_by_asset=cost_bps_by_asset,
+                theme_by_asset=theme_by_asset,
+            )
+            idea_rows.append(idea_table_day)
+
+            quant_gate_map = (
+                idea_table_day.set_index("asset")["quant_gate_pass"].to_dict() if not idea_table_day.empty else {}
+            )
+            for asset in assets:
+                if bool(quant_gate_map.get(asset, False)):
+                    continue
+                cur = float(weights.get(asset, 0.0))
+                tgt = float(target.get(asset, 0.0))
+                if abs(tgt) > abs(cur):
+                    target.at[asset] = cur
+
+            conflict_row = conflict_multipliers.loc[ts].reindex(assets).fillna(1.0)
+            target = (target * conflict_row).reindex(assets).fillna(0.0)
+
+            if m_t <= V6_CRISIS_MACRO_THRESHOLD:
+                for asset in assets:
+                    if get_asset_class(asset) in V6_HIGH_BETA_CLASSES and float(target.get(asset, 0.0)) > 0:
+                        target.at[asset] *= (1.0 - V6_CRISIS_LONG_REDUCTION)
+
+            target = enforce_theme_concentration_cap(
+                weights=target,
+                theme_by_asset=theme_by_asset,
+                max_theme_share=ANALYSIS_MAX_THEME_SHARE,
+            )
+
+            analysis_daily_ledger.append(
+                {
+                    "timestamp": ts,
+                    "report_valid": bool(report_valid),
+                    "M_t": float(m_t),
+                    "C_t": float(c_t),
+                    "Q_t": float(q_t),
+                    "event_risk_multiplier": float(event_mult),
+                    "gross_cap_effective": float(regime_cap),
+                }
+            )
 
         target = enforce_weight_constraints(target.reindex(assets).fillna(0.0), gross_cap=max(0.0, regime_cap))
 
@@ -412,10 +611,9 @@ def run_backtest(
         exec_day: Optional[pd.Timestamp] = future_days[delay_steps] if len(future_days) > delay_steps else None
 
         filled_delta = pd.Series(0.0, index=assets)
-        exec_logs: List[Dict] = []
         if exec_day is not None:
             cost_bps_by_asset = {asset: _cost_bps_for_asset(asset, cost_multiplier) for asset in assets}
-            filled_delta, exec_stats, exec_logs = execute_order_slice(
+            filled_delta, exec_stats, _ = execute_order_slice(
                 order_deltas=desired_delta,
                 exec_day=exec_day,
                 closes_4h=closes_4h,
@@ -445,7 +643,7 @@ def run_backtest(
                 continue
 
             bps = _cost_bps_for_asset(asset, cost_multiplier)
-            trade_cost = abs(float(delta)) * equity * (bps / 10000.0)
+            trade_cost = abs(float(delta)) * float(leverage_multiplier) * equity * (bps / 10000.0)
             daily_trade_cost += trade_cost
             cost_drag_by_class[get_asset_class(asset)] += trade_cost
 
@@ -524,6 +722,8 @@ def run_backtest(
     median_turnover = float(np.median(turnover_throttled)) if turnover_throttled else 0.0
 
     diagnostics = {
+        "strategy_version": strategy_version,
+        "leverage_multiplier": float(leverage_multiplier),
         "quality": quality_report,
         "regime_attribution": regime_attr,
         "turnover": {
@@ -562,11 +762,40 @@ def run_backtest(
         },
     }
 
+    idea_table = pd.concat(idea_rows, axis=0, ignore_index=True) if idea_rows else pd.DataFrame()
+
+    if strategy_version == "v6":
+        if overlay_table.empty:
+            overlay_table = pd.DataFrame(index=daily_index)
+
+        overlay_strength = (score_for_target - base_score).abs().mean(axis=1).fillna(0.0)
+        q_series = overlays.get("reliability", pd.Series(0.0, index=overlay_strength.index))
+        high_q_mask = q_series.reindex(overlay_strength.index).fillna(0.0) >= ANALYSIS_MIN_REPORT_RELIABILITY
+
+        overlay_total = float(overlay_strength.sum())
+        overlay_high_q = float(overlay_strength[high_q_mask].sum()) if overlay_total > 0 else np.nan
+        overlay_high_q_share = float(overlay_high_q / overlay_total) if overlay_total > 0 else np.nan
+
+        diagnostics["analysis"] = {
+            "ablation_mode": analysis_ablation,
+            "report_valid_rate": float(overlays["report_valid"].mean()) if "report_valid" in overlays else 0.0,
+            "mean_q_t": float(overlays["reliability"].mean()) if "reliability" in overlays else 0.0,
+            "mean_c_t": float(overlays["scenario_confidence"].mean()) if "scenario_confidence" in overlays else 0.0,
+            "overlay_high_q_share": overlay_high_q_share,
+            "daily_ledger": analysis_daily_ledger,
+            "data_coverage": analysis_data_diagnostics,
+        }
+
+        if persist_analysis_artifacts:
+            _persist_analysis_artifacts(overlay_table=overlay_table, idea_table=idea_table)
+
     return {
         "equity": equity_series,
         "daily_returns": returns_series,
         "weights": weights_df,
         "diagnostics": diagnostics,
+        "overlay_table": overlay_table,
+        "idea_table": idea_table,
     }
 
 
@@ -577,6 +806,7 @@ if __name__ == "__main__":
         missing_data_ratio=0.0,
         liquidity_haircut=1.0,
         short_borrow_bps_per_day=0.0,
+        strategy_version=STRATEGY_VERSION,
     )
     print(base["equity"].tail())
     print(base["diagnostics"]["turnover"])

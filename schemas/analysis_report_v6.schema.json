@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "analysis_report_v6.schema.json",
+  "title": "Daily Analysis Report v6",
+  "type": "object",
+  "required": [
+    "trading_day",
+    "generated_at_utc",
+    "analysis_cutoff_utc",
+    "macro_summary",
+    "regional_drivers",
+    "asset_catalysts",
+    "historical_analogs",
+    "sentiment_money_flow",
+    "scenario_map",
+    "trade_ideas",
+    "source_counts_by_catalyst"
+  ],
+  "properties": {
+    "trading_day": {"type": "string"},
+    "generated_at_utc": {"type": "string"},
+    "analysis_cutoff_utc": {"type": "string"},
+    "macro_summary": {"type": "array"},
+    "regional_drivers": {"type": "object"},
+    "asset_catalysts": {"type": "object"},
+    "historical_analogs": {"type": "array"},
+    "sentiment_money_flow": {"type": "object"},
+    "scenario_map": {"type": "object"},
+    "trade_ideas": {"type": "array"},
+    "source_counts_by_catalyst": {"type": "object"},
+    "source_diversity_by_catalyst": {"type": "object"},
+    "themes": {"type": "array"},
+    "event_risk_multiplier": {"type": "number"}
+  }
+}

@@ -41,14 +41,15 @@ ASSETS = {
     "XRP": {"provider": "polygon", "polygon_ticker": "X:XRPUSD", "asset_class": "crypto"},
 }
 
-STRATEGY_VERSION = "v5"
+STRATEGY_VERSION = "v6"
 PRIMARY_TIMEFRAME = "1D"
 EXEC_TIMEFRAME = "4H"
 REGIME_TIMEFRAME = "1W"
 
-BACKTEST_START_DATE = "2025-06-01"
+BACKTEST_START_DATE = "2025-01-01"
 BACKTEST_END_DATE = "2026-01-31"
 CAPITAL = 1_000_000.0
+BACKTEST_LEVERAGE_MULTIPLIER = 3.0
 MARKET_PROXY_ASSET = "SPY"
 
 TRANSACTION_COST_BPS_BY_CLASS = {
@@ -147,6 +148,63 @@ QUALITY_BREADTH_MAX_CATEGORY_SHARE = 0.45
 STRESS_MISSING_DATA_RATIO = 0.075
 STRESS_LIQUIDITY_HAIRCUT = 0.70
 STRESS_SHORT_BORROW_BPS_PER_DAY = 2.0
+
+# v6 analysis-first contract
+ANALYSIS_CUTOFF_HOUR_ET = 8
+ANALYSIS_MIN_SOURCES_PER_CATALYST = 3
+ANALYSIS_MIN_REPORT_RELIABILITY = 0.60
+ANALYSIS_MIN_SCENARIO_CONFIDENCE = 0.40
+ANALYSIS_MAX_THEME_SHARE = 0.35
+ANALYSIS_EVENT_RISK_REDUCTION_MIN = 0.20
+ANALYSIS_EVENT_RISK_REDUCTION_MAX = 0.40
+
+ANALYSIS_NEWS_PATH = "data/news/news_events.jsonl"
+ANALYSIS_MACRO_CALENDAR_PATH = "data/news/macro_calendar.csv"
+ANALYSIS_REPORTS_DIR = "data/analysis/reports"
+ANALYSIS_OVERLAYS_PATH = "data/analysis/overlays.pkl"
+ANALYSIS_IDEAS_PATH = "data/analysis/ideas.pkl"
+ANALYSIS_REPORT_SCHEMA_PATH = "schemas/analysis_report_v6.schema.json"
+ANALYSIS_OVERLAY_SCHEMA_PATH = "schemas/analysis_overlay_v6.schema.json"
+
+V6_OVERLAY_WEIGHTS = {
+    "asset_catalyst": 0.20,
+    "cross_asset_flow": 0.15,
+    "macro_regime_beta": 0.10,
+}
+V6_RELIABILITY_SCALE_FLOOR = 0.50
+V6_CONFLICT_CATALYST_THRESHOLD = 0.70
+V6_CONFLICT_CAP_MULTIPLIER = 0.50
+V6_SEVERE_UNCERTAINTY_GROSS_CAP = 1.0
+V6_CRISIS_MACRO_THRESHOLD = -0.70
+V6_CRISIS_LONG_REDUCTION = 0.30
+V6_HIGH_BETA_CLASSES = {"stock", "crypto"}
+V6_REPORT_GROSS_SCALE_BASE = 0.70
+V6_REPORT_GROSS_SCALE_MULT = 0.30
+
+V6_IDEA_MIN_ABS_SIGNAL = 1.0
+V6_IDEA_SCORE_WEIGHTS = {
+    "signal": 0.45,
+    "asset_catalyst": 0.25,
+    "scenario_confidence": 0.15,
+    "report_reliability": 0.15,
+}
+
+BETA_BY_ASSET = {
+    "TSLA": 1.20,
+    "MCD": 0.70,
+    "NVDA": 1.30,
+    "GOOG": 1.10,
+    "SPY": 1.00,
+    "EURUSD": 0.50,
+    "AUDUSD": 0.80,
+    "GOLD": 0.20,
+    "SILVER": 0.60,
+    "COPPER": 0.90,
+    "BTC": 1.50,
+    "ETH": 1.60,
+    "SOL": 1.80,
+    "XRP": 1.70,
+}
 
 # v3 constants are intentionally kept for rollback and comparison studies.
 V3_LEGACY = {

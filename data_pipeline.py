@@ -200,14 +200,25 @@ def build_v5_matrices(write_quality_report: bool = True) -> Dict[str, pd.DataFra
     matrices["lows_4h"].to_pickle(Path(PROCESSED_DIR) / "lows.pkl")
     matrices["closes_4h"].to_pickle(Path(PROCESSED_DIR) / "closes.pkl")
 
+    quality_report = {}
     if write_quality_report:
-        build_data_quality_report(
+        quality_report = build_data_quality_report(
             closes_1d=matrices["closes_1d"],
             closes_4h=matrices["closes_4h"],
             expected_1d=expected_1d_df,
             expected_4h=expected_4h_df,
             output_path=QUALITY_REPORT_PATH,
         )
+    else:
+        quality_report = load_data_quality_report(QUALITY_REPORT_PATH)
+
+    eligible_assets = set(quality_report.get("breadth", {}).get("eligible_assets_list", []))
+    eligibility_1d = matrices["closes_1d"].notna()
+    for asset in eligibility_1d.columns:
+        if asset not in eligible_assets:
+            eligibility_1d.loc[:, asset] = False
+    eligibility_1d.to_pickle(Path(PROCESSED_DIR) / "eligibility_1d.pkl")
+    matrices["eligibility_1d"] = eligibility_1d
 
     return matrices
 
@@ -226,6 +237,7 @@ def load_processed_ohlc_v5(require_quality_pass: bool = True) -> Tuple[Dict[str,
             "highs_4h",
             "lows_4h",
             "closes_4h",
+            "eligibility_1d",
         ]
     }
 

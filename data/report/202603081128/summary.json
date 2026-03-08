@@ -1,0 +1,4034 @@
+{
+  "strategy_version": "v6",
+  "leverage_multiplier": 3.0,
+  "scenarios": {
+    "base": {
+      "start": "2025-01-02 00:00:00-05:00",
+      "end": "2026-01-31 00:00:00-05:00",
+      "bars": 395,
+      "start_equity": 1000000.0,
+      "end_equity": 1267688.008351474,
+      "total_return_pct": 26.76880083514741,
+      "annualized_return_pct": 16.382073951517317,
+      "annualized_volatility_pct": 11.597884711003013,
+      "sharpe": 1.4125053283186633,
+      "max_drawdown_pct": -6.055446697490085,
+      "max_drawdown_at": "2026-01-07 00:00:00-05:00"
+    },
+    "stress_1p5x": {
+      "start": "2025-01-02 00:00:00-05:00",
+      "end": "2026-01-31 00:00:00-05:00",
+      "bars": 395,
+      "start_equity": 1000000.0,
+      "end_equity": 1266105.3659955154,
+      "total_return_pct": 26.610536599551526,
+      "annualized_return_pct": 16.289121989165945,
+      "annualized_volatility_pct": 11.576564049675952,
+      "sharpe": 1.407077429820112,
+      "max_drawdown_pct": -6.095385539933396,
+      "max_drawdown_at": "2026-01-07 00:00:00-05:00"
+    },
+    "stress_2p0x_delay": {
+      "start": "2025-01-02 00:00:00-05:00",
+      "end": "2026-01-31 00:00:00-05:00",
+      "bars": 395,
+      "start_equity": 1000000.0,
+      "end_equity": 1345431.135260275,
+      "total_return_pct": 34.543113526027504,
+      "annualized_return_pct": 20.897971376801383,
+      "annualized_volatility_pct": 14.917564591114576,
+      "sharpe": 1.4008969928810595,
+      "max_drawdown_pct": -10.337624244114341,
+      "max_drawdown_at": "2026-01-03 00:00:00-05:00"
+    },
+    "stress_missing_data": {
+      "start": "2025-01-02 00:00:00-05:00",
+      "end": "2026-01-31 00:00:00-05:00",
+      "bars": 395,
+      "start_equity": 1000000.0,
+      "end_equity": 1000000.0,
+      "total_return_pct": 0.0,
+      "annualized_return_pct": 0.0,
+      "annualized_volatility_pct": 0.0,
+      "sharpe": NaN,
+      "max_drawdown_pct": 0.0,
+      "max_drawdown_at": "2025-01-02 00:00:00-05:00"
+    },
+    "stress_liquidity": {
+      "start": "2025-01-02 00:00:00-05:00",
+      "end": "2026-01-31 00:00:00-05:00",
+      "bars": 395,
+      "start_equity": 1000000.0,
+      "end_equity": 1267282.4458634253,
+      "total_return_pct": 26.72824458634253,
+      "annualized_return_pct": 16.358258388768743,
+      "annualized_volatility_pct": 11.598451176234883,
+      "sharpe": 1.4103830020241546,
+      "max_drawdown_pct": -6.0542344920846975,
+      "max_drawdown_at": "2026-01-07 00:00:00-05:00"
+    },
+    "stress_borrow_funding": {
+      "start": "2025-01-02 00:00:00-05:00",
+      "end": "2026-01-31 00:00:00-05:00",
+      "bars": 395,
+      "start_equity": 1000000.0,
+      "end_equity": 1263588.719737134,
+      "total_return_pct": 26.358871973713406,
+      "annualized_return_pct": 16.141227698444904,
+      "annualized_volatility_pct": 11.58117920166161,
+      "sharpe": 1.3937464758449676,
+      "max_drawdown_pct": -6.167431548671065,
+      "max_drawdown_at": "2026-01-07 00:00:00-05:00"
+    }
+  },
+  "acceptance_checks": {
+    "oos_sharpe_uplift_ge_0p20": true,
+    "max_drawdown_not_worse_than_v5": true,
+    "cost_stress_sharpe_uplift_ge_0p10": true,
+    "overlay_contrib_high_q_ge_60pct": true,
+    "worst_fold_not_worse_than_v5": false
+  },
+  "decision": "refine",
+  "comparison": {
+    "v5_base": {
+      "start": "2025-01-02 00:00:00-05:00",
+      "end": "2026-01-31 00:00:00-05:00",
+      "bars": 395,
+      "start_equity": 1000000.0,
+      "end_equity": 1280813.71608868,
+      "total_return_pct": 28.08137160886801,
+      "annualized_return_pct": 17.151369944007165,
+      "annualized_volatility_pct": 24.535434185313594,
+      "sharpe": 0.6990448921533097,
+      "max_drawdown_pct": -14.981433506044883,
+      "max_drawdown_at": "2026-01-30 00:00:00-05:00"
+    },
+    "v6_base": {
+      "start": "2025-01-02 00:00:00-05:00",
+      "end": "2026-01-31 00:00:00-05:00",
+      "bars": 395,
+      "start_equity": 1000000.0,
+      "end_equity": 1267688.008351474,
+      "total_return_pct": 26.76880083514741,
+      "annualized_return_pct": 16.382073951517317,
+      "annualized_volatility_pct": 11.597884711003013,
+      "sharpe": 1.4125053283186633,
+      "max_drawdown_pct": -6.055446697490085,
+      "max_drawdown_at": "2026-01-07 00:00:00-05:00"
+    },
+    "base_sharpe_uplift": 0.7134604361653536,
+    "stress_1p5x_sharpe_uplift": 0.7175694007114596,
+    "overlay_high_q_share": 1.0,
+    "worst_fold_monthly_return_pct": {
+      "v6": -2.4846409326832686,
+      "v5": -0.4012166223336111
+    }
+  },
+  "diagnostics": {
+    "regime_state_attribution": {
+      "RISK_ON": {
+        "bars": 42,
+        "total_return_pct": 0.0,
+        "annualized_return_pct": 0.0,
+        "annualized_volatility_pct": 0.0,
+        "sharpe": NaN,
+        "max_drawdown_pct": 0.0
+      },
+      "NEUTRAL": {
+        "bars": 239,
+        "total_return_pct": 7.094210244271615,
+        "annualized_return_pct": 7.494207754203086,
+        "annualized_volatility_pct": 8.456824246535199,
+        "sharpe": 0.8861728156729163,
+        "max_drawdown_pct": -3.0350343020605464
+      },
+      "RISK_OFF": {
+        "bars": 114,
+        "total_return_pct": 18.37129247790328,
+        "annualized_return_pct": 45.18209926901706,
+        "annualized_volatility_pct": 17.723793764233378,
+        "sharpe": 2.549234090062284,
+        "max_drawdown_pct": -3.256017728310112
+      }
+    },
+    "turnover": {
+      "avg_raw_turnover": 0.039204653240735333,
+      "avg_turnover_after_band": 0.0391962125212407,
+      "avg_throttled_turnover": 0.0199290916693863,
+      "median_daily_turnover_pct": 0.0
+    },
+    "execution": {
+      "counts": {
+        "executed": 34,
+        "deferred": 5,
+        "canceled": 82
+      },
+      "bucket_counts": {
+        "high": 34,
+        "medium": 5,
+        "low": 132
+      },
+      "avg_slippage_bps_by_bucket": {
+        "high": 1.0,
+        "medium": 3.0,
+        "low": 6.0
+      }
+    },
+    "breadth": {
+      "average_active_assets": 0.26903553299492383,
+      "average_active_categories": 0.12690355329949238,
+      "max_category_share_mean": 0.09390862944162437
+    },
+    "cost_drag": {
+      "total_cost_drag": 3038.02267582689,
+      "cost_drag_pct_of_starting_capital": 0.303802267582689,
+      "by_asset_class": {
+        "metal": 503.1927481040262,
+        "crypto": 2534.829927722864
+      }
+    },
+    "risk_events": {
+      "count": 400,
+      "by_type": {
+        "breadth_gate_block": 282,
+        "report_invalid_derisk_only": 109,
+        "stop_loss": 7,
+        "time_stop": 2
+      }
+    },
+    "data_quality": {
+      "hard_pass": true,
+      "breadth_pass": true,
+      "breadth": {
+        "eligible_assets": 14,
+        "eligible_categories": 4,
+        "max_category_share": 0.3571,
+        "eligible_assets_list": [
+          "AUDUSD",
+          "BTC",
+          "COPPER",
+          "ETH",
+          "EURUSD",
+          "GOLD",
+          "GOOG",
+          "MCD",
+          "NVDA",
+          "SILVER",
+          "SOL",
+          "SPY",
+          "TSLA",
+          "XRP"
+        ],
+        "class_counts": {
+          "stock": 5,
+          "forex": 2,
+          "metal": 3,
+          "crypto": 4
+        }
+      },
+      "thresholds": {
+        "daily_coverage_90d": 0.98,
+        "4h_coverage_30d": 0.95,
+        "feature_completeness": 0.97,
+        "min_eligible_assets": 10,
+        "min_categories": 3,
+        "max_category_share": 0.45
+      },
+      "per_asset": {
+        "TSLA": {
+          "asset_class": "stock",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "MCD": {
+          "asset_class": "stock",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "NVDA": {
+          "asset_class": "stock",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "GOOG": {
+          "asset_class": "stock",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "SPY": {
+          "asset_class": "stock",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "EURUSD": {
+          "asset_class": "forex",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "AUDUSD": {
+          "asset_class": "forex",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "GOLD": {
+          "asset_class": "metal",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "SILVER": {
+          "asset_class": "metal",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "COPPER": {
+          "asset_class": "metal",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "BTC": {
+          "asset_class": "crypto",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "ETH": {
+          "asset_class": "crypto",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "SOL": {
+          "asset_class": "crypto",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "XRP": {
+          "asset_class": "crypto",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        }
+      },
+      "exclusions": {}
+    },
+    "analysis": {
+      "ablation_mode": null,
+      "report_valid_rate": 0.7240506329113924,
+      "mean_q_t": 0.9701460468153505,
+      "mean_c_t": 0.9814247551786963,
+      "overlay_high_q_share": 1.0,
+      "daily_ledger": [
+        {
+          "timestamp": "2025-01-03 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": 0.008120071327876387,
+          "C_t": 0.9991879928672124,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1997076774321964
+        },
+        {
+          "timestamp": "2025-01-04 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": 0.008120071327876387,
+          "C_t": 0.9991879928672124,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1997076774321964
+        },
+        {
+          "timestamp": "2025-01-05 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.008120071327876387,
+          "C_t": 0.9991879928672124,
+          "Q_t": 0.8142857142857144,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-06 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": 0.008120071327876387,
+          "C_t": 0.9991879928672124,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1997076774321964
+        },
+        {
+          "timestamp": "2025-01-07 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": 0.008120071327876387,
+          "C_t": 0.9969458005938414,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1989004882137828
+        },
+        {
+          "timestamp": "2025-01-08 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": 0.008120071327876387,
+          "C_t": 0.9960589277570963,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1985812139925545
+        },
+        {
+          "timestamp": "2025-01-09 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.008120071327876387,
+          "C_t": 0.9950438322619173,
+          "Q_t": 0.9111111111111112,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-10 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.008120071327876387,
+          "C_t": 0.9991879928672124,
+          "Q_t": 0.9111111111111112,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-11 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.3581200713278764,
+          "C_t": 0.9629825367551967,
+          "Q_t": 0.8472222222222223,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-12 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.3581200713278764,
+          "C_t": 0.9641879928672124,
+          "Q_t": 0.6615079365079365,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-13 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.3581200713278764,
+          "C_t": 0.9645570702614693,
+          "Q_t": 0.8472222222222223,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-14 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.3581200713278764,
+          "C_t": 0.9651512551696981,
+          "Q_t": 0.8472222222222223,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-15 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.3581200713278764,
+          "C_t": 0.9650085440446696,
+          "Q_t": 0.8472222222222223,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-16 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.3581200713278764,
+          "C_t": 0.9583243343825916,
+          "Q_t": 0.8416666666666668,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-17 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.3581200713278764,
+          "C_t": 0.9641879928672124,
+          "Q_t": 0.8416666666666668,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-18 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.3581200713278764,
+          "C_t": 0.963673829610606,
+          "Q_t": 0.8416666666666668,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-19 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.3581200713278764,
+          "C_t": 0.9641879928672124,
+          "Q_t": 0.655952380952381,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-20 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.3581200713278764,
+          "C_t": 0.9621453851066406,
+          "Q_t": 0.8416666666666668,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-21 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.3581200713278764,
+          "C_t": 0.9624603691118623,
+          "Q_t": 0.8416666666666668,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-22 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.3581200713278764,
+          "C_t": 0.9541174493529097,
+          "Q_t": 0.8416666666666668,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-23 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.3581200713278764,
+          "C_t": 0.952802395683217,
+          "Q_t": 0.8416666666666668,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-24 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.2414534046612097,
+          "C_t": 0.9711595784410988,
+          "Q_t": 0.8500000000000001,
+          "event_risk_multiplier": 0.8,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-25 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.2414534046612097,
+          "C_t": 0.9724870332090092,
+          "Q_t": 0.8500000000000001,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-26 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.2414534046612097,
+          "C_t": 0.9758546595338791,
+          "Q_t": 0.6642857142857143,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-27 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.2414534046612097,
+          "C_t": 0.974165798834924,
+          "Q_t": 0.8500000000000001,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-28 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.2414534046612097,
+          "C_t": 0.9803358770802695,
+          "Q_t": 0.8500000000000001,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-29 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.2414534046612097,
+          "C_t": 0.979903128705228,
+          "Q_t": 0.8500000000000001,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-30 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.1831200713278764,
+          "C_t": 0.9827169718181814,
+          "Q_t": 0.8520833333333333,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-01-31 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.1831200713278764,
+          "C_t": 0.9769518999982325,
+          "Q_t": 0.9,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-01 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.1831200713278764,
+          "C_t": 0.9801245355233823,
+          "Q_t": 0.9,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-02 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.1831200713278764,
+          "C_t": 0.9816879928672124,
+          "Q_t": 0.7142857142857143,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-03 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.1831200713278764,
+          "C_t": 0.9801642751654753,
+          "Q_t": 0.9239583333333334,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-04 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.1831200713278764,
+          "C_t": 0.9774271389722342,
+          "Q_t": 0.9239583333333334,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-05 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.1831200713278764,
+          "C_t": 0.9774829196024257,
+          "Q_t": 0.9239583333333334,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-06 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.1831200713278764,
+          "C_t": 0.976106579604274,
+          "Q_t": 0.9239583333333334,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-07 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.1831200713278764,
+          "C_t": 0.9782838275506961,
+          "Q_t": 0.9239583333333334,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-08 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.20812007132787638,
+          "C_t": 0.9734488778379674,
+          "Q_t": 0.9239583333333334,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-09 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.20812007132787638,
+          "C_t": 0.9791879928672124,
+          "Q_t": 0.7382440476190476,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-10 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.20812007132787638,
+          "C_t": 0.9757447816879335,
+          "Q_t": 0.9239583333333334,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-11 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.20812007132787638,
+          "C_t": 0.9784968336263599,
+          "Q_t": 0.9239583333333334,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-12 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.20812007132787638,
+          "C_t": 0.9819277957012477,
+          "Q_t": 0.9239583333333334,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-13 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.1831200713278764,
+          "C_t": 0.97833135838055,
+          "Q_t": 0.9239583333333334,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-14 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.14312007132787638,
+          "C_t": 0.9830710884185548,
+          "Q_t": 0.9027777777777779,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-15 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.14312007132787638,
+          "C_t": 0.983538948079489,
+          "Q_t": 0.9027777777777779,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-16 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.14312007132787638,
+          "C_t": 0.9856879928672124,
+          "Q_t": 0.7170634920634921,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-17 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.14312007132787638,
+          "C_t": 0.9770446326515067,
+          "Q_t": 0.9027777777777779,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-18 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.12367562688343192,
+          "C_t": 0.9820049511930764,
+          "Q_t": 0.9027777777777779,
+          "event_risk_multiplier": 0.8,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-19 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.12367562688343192,
+          "C_t": 0.982031861853147,
+          "Q_t": 0.9027777777777779,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-20 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.12367562688343192,
+          "C_t": 0.9807909042217029,
+          "Q_t": 0.9027777777777779,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-21 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.12367562688343192,
+          "C_t": 0.9822173873650939,
+          "Q_t": 0.9027777777777779,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-22 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.12367562688343192,
+          "C_t": 0.987089813445919,
+          "Q_t": 0.9175925925925927,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-23 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.12367562688343192,
+          "C_t": 0.9876324373116568,
+          "Q_t": 0.7318783068783069,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-24 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.12367562688343192,
+          "C_t": 0.9822208989442024,
+          "Q_t": 0.9175925925925927,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-25 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.12367562688343192,
+          "C_t": 0.9872959551270234,
+          "Q_t": 0.9175925925925927,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-26 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.12367562688343192,
+          "C_t": 0.9871624835716929,
+          "Q_t": 0.9175925925925927,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-27 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.12367562688343192,
+          "C_t": 0.9872172118728164,
+          "Q_t": 0.9324074074074074,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-02-28 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.12367562688343192,
+          "C_t": 0.9898741352033624,
+          "Q_t": 0.9324074074074074,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-01 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.12367562688343192,
+          "C_t": 0.991627248952093,
+          "Q_t": 0.9324074074074074,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-02 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.12367562688343192,
+          "C_t": 0.9876324373116568,
+          "Q_t": 0.7466931216931217,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-03 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.12367562688343192,
+          "C_t": 0.9923000485294675,
+          "Q_t": 0.9324074074074074,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-04 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.12367562688343192,
+          "C_t": 0.9844241887792139,
+          "Q_t": 0.9324074074074074,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-05 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.12367562688343192,
+          "C_t": 0.9835056788757786,
+          "Q_t": 0.9324074074074074,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-06 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.12367562688343192,
+          "C_t": 0.9744769138062175,
+          "Q_t": 0.9324074074074074,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-07 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.10812007132787638,
+          "C_t": 0.9852437937198313,
+          "Q_t": 0.9324074074074074,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-08 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.0766762210604967,
+          "C_t": 0.9853661580922355,
+          "Q_t": 0.9324074074074074,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-09 00:00:00-05:00",
+          "report_valid": false,
+          "M_t": 0.0766762210604967,
+          "C_t": 0.9923323778939503,
+          "Q_t": 0.7466931216931217,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-10 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.0766762210604967,
+          "C_t": 0.988499702005744,
+          "Q_t": 0.9324074074074074,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-11 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.0766762210604967,
+          "C_t": 0.9800737518908966,
+          "Q_t": 0.9324074074074074,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-12 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.0766762210604967,
+          "C_t": 0.9806410075382999,
+          "Q_t": 0.9324074074074074,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-13 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.06762987524944501,
+          "C_t": 0.9814979653865915,
+          "Q_t": 0.9324074074074074,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-14 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.06762987524944501,
+          "C_t": 0.9852104453611308,
+          "Q_t": 0.9472222222222222,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-15 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.06762987524944501,
+          "C_t": 0.9885871196779259,
+          "Q_t": 0.9472222222222222,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-16 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.06762987524944501,
+          "C_t": 0.9932370124750555,
+          "Q_t": 0.7615079365079366,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-17 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.06762987524944501,
+          "C_t": 0.9856985689575137,
+          "Q_t": 0.9472222222222222,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-18 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.027629875249445005,
+          "C_t": 0.9831744720916351,
+          "Q_t": 0.962037037037037,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-19 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.019975274947785865,
+          "C_t": 0.9831408722737489,
+          "Q_t": 0.962037037037037,
+          "event_risk_multiplier": 0.8,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-20 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.013414188974935196,
+          "C_t": 0.9861096994520302,
+          "Q_t": 0.962037037037037,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-21 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.013414188974935196,
+          "C_t": 0.9880687410254598,
+          "Q_t": 0.962037037037037,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-22 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.013414188974935196,
+          "C_t": 0.9982036675938424,
+          "Q_t": 0.962037037037037,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-23 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.013414188974935196,
+          "C_t": 0.9986585811025065,
+          "Q_t": 0.7763227513227514,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-24 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.013414188974935196,
+          "C_t": 0.9977308983559543,
+          "Q_t": 0.962037037037037,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-25 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.013414188974935196,
+          "C_t": 0.9932335525510576,
+          "Q_t": 0.962037037037037,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-26 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.013414188974935196,
+          "C_t": 0.9876579525299622,
+          "Q_t": 0.962037037037037,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-27 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.013414188974935196,
+          "C_t": 0.9924906660803361,
+          "Q_t": 0.962037037037037,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-28 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.013414188974935196,
+          "C_t": 0.9946217703013918,
+          "Q_t": 0.9768518518518519,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-29 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.013414188974935196,
+          "C_t": 0.9951534255832399,
+          "Q_t": 0.9768518518518519,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-30 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.013414188974935196,
+          "C_t": 0.9986585811025065,
+          "Q_t": 0.7911375661375663,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-03-31 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.013414188974935196,
+          "C_t": 0.9909628726304596,
+          "Q_t": 0.9768518518518519,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-01 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.013414188974935196,
+          "C_t": 0.9875440052808637,
+          "Q_t": 0.9768518518518519,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-02 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.013414188974935196,
+          "C_t": 0.9947086075985889,
+          "Q_t": 0.9768518518518519,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-03 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.013414188974935196,
+          "C_t": 0.9945563390254418,
+          "Q_t": 0.9768518518518519,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-04 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.013414188974935196,
+          "C_t": 0.9963875965571868,
+          "Q_t": 0.9768518518518519,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-05 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.0310612477984646,
+          "C_t": 0.9884602471077009,
+          "Q_t": 0.9768518518518519,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-06 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.0310612477984646,
+          "C_t": 0.9968938752201535,
+          "Q_t": 0.7911375661375663,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-07 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.0310612477984646,
+          "C_t": 0.9844439065650548,
+          "Q_t": 0.9768518518518519,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-08 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.0310612477984646,
+          "C_t": 0.9760518191680534,
+          "Q_t": 0.9768518518518519,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-09 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.0310612477984646,
+          "C_t": 0.9698386017275513,
+          "Q_t": 0.9768518518518519,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-10 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.0310612477984646,
+          "C_t": 0.9780136052666428,
+          "Q_t": 0.9768518518518519,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-11 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.002752424269052839,
+          "C_t": 0.9945355504504008,
+          "Q_t": 0.9768518518518519,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-12 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.002752424269052839,
+          "C_t": 0.9857386945834654,
+          "Q_t": 0.9768518518518519,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-13 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.002752424269052839,
+          "C_t": 0.9997247575730948,
+          "Q_t": 0.7911375661375663,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-14 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.002752424269052839,
+          "C_t": 0.982395769165169,
+          "Q_t": 0.9768518518518519,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-15 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.002752424269052839,
+          "C_t": 0.9817221417317561,
+          "Q_t": 0.9768518518518519,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-16 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.002752424269052839,
+          "C_t": 0.9895916413307506,
+          "Q_t": 0.9768518518518519,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-17 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": 0.002752424269052839,
+          "C_t": 0.9847324061220974,
+          "Q_t": 0.9768518518518519,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-18 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": -0.04163771413925163,
+          "C_t": 0.9936361702082459,
+          "Q_t": 0.9916666666666667,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-19 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": -0.04163771413925163,
+          "C_t": 0.9958362285860749,
+          "Q_t": 0.8059523809523809,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-20 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": -0.04163771413925163,
+          "C_t": 0.9958362285860749,
+          "Q_t": 0.8059523809523809,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-21 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": -0.04163771413925163,
+          "C_t": 0.9931616097560332,
+          "Q_t": 0.9916666666666667,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-22 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.04163771413925163,
+          "C_t": 0.9792952636138734,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1925462949009944
+        },
+        {
+          "timestamp": "2025-04-23 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.04163771413925163,
+          "C_t": 0.9939985762029553,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1978394874330638
+        },
+        {
+          "timestamp": "2025-04-24 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.04163771413925163,
+          "C_t": 0.9937601943225138,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1977536699561049
+        },
+        {
+          "timestamp": "2025-04-25 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.04163771413925163,
+          "C_t": 0.9835238859971098,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1940685989589594
+        },
+        {
+          "timestamp": "2025-04-26 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.04163771413925163,
+          "C_t": 0.9948038884564347,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1981293998443163
+        },
+        {
+          "timestamp": "2025-04-27 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": -0.04163771413925163,
+          "C_t": 0.9958362285860749,
+          "Q_t": 0.8142857142857144,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-04-28 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.04163771413925163,
+          "C_t": 0.9914319004581549,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1969154841649357
+        },
+        {
+          "timestamp": "2025-04-29 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.04163771413925163,
+          "C_t": 0.976357507190097,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1914887025884349
+        },
+        {
+          "timestamp": "2025-04-30 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.04163771413925163,
+          "C_t": 0.9947807249403877,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1981210609785395
+        },
+        {
+          "timestamp": "2025-05-01 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.06498450383552229,
+          "C_t": 0.9892199023030783,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.196119164829108
+        },
+        {
+          "timestamp": "2025-05-02 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.06498450383552229,
+          "C_t": 0.9954097134595575,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1983474968454406
+        },
+        {
+          "timestamp": "2025-05-03 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.08587373672165921,
+          "C_t": 0.9892135778136116,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1961168880129
+        },
+        {
+          "timestamp": "2025-05-04 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": -0.08587373672165921,
+          "C_t": 0.9914126263278341,
+          "Q_t": 0.8142857142857144,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-05-05 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.08587373672165921,
+          "C_t": 0.9901452082309737,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1964522749631503
+        },
+        {
+          "timestamp": "2025-05-06 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.08587373672165921,
+          "C_t": 0.9908519356752491,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1967066968430895
+        },
+        {
+          "timestamp": "2025-05-07 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.08587373672165921,
+          "C_t": 0.9898911515550605,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1963608145598217
+        },
+        {
+          "timestamp": "2025-05-08 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.08717404631918244,
+          "C_t": 0.9908810961248478,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.196717194604945
+        },
+        {
+          "timestamp": "2025-05-09 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.08717404631918244,
+          "C_t": 0.9912825953680817,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1968617343325092
+        },
+        {
+          "timestamp": "2025-05-10 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.08717404631918244,
+          "C_t": 0.9920052295648114,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1971218826433319
+        },
+        {
+          "timestamp": "2025-05-11 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": -0.08717404631918244,
+          "C_t": 0.9912825953680817,
+          "Q_t": 0.8142857142857144,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-05-12 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.08717404631918244,
+          "C_t": 0.9850853464275813,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1946307247139292
+        },
+        {
+          "timestamp": "2025-05-13 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.08717404631918244,
+          "C_t": 0.9765607309247144,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.191561863132897
+        },
+        {
+          "timestamp": "2025-05-14 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.08717404631918244,
+          "C_t": 0.9770316877884591,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.191731407603845
+        },
+        {
+          "timestamp": "2025-05-15 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.08717404631918244,
+          "C_t": 0.9711370516064397,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1896093385783182
+        },
+        {
+          "timestamp": "2025-05-16 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07168385024075105,
+          "C_t": 0.9874311222520527,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1954752040107388
+        },
+        {
+          "timestamp": "2025-05-17 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07168385024075105,
+          "C_t": 0.9893482973336203,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1961653870401032
+        },
+        {
+          "timestamp": "2025-05-18 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": -0.07168385024075105,
+          "C_t": 0.9928316149759249,
+          "Q_t": 0.8142857142857144,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-05-19 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07168385024075105,
+          "C_t": 0.9885666484351192,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1958839934366428
+        },
+        {
+          "timestamp": "2025-05-20 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07351094471490435,
+          "C_t": 0.9870066380542276,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 0.8,
+          "gross_cap_effective": 0.9562579117596175
+        },
+        {
+          "timestamp": "2025-05-21 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07351094471490435,
+          "C_t": 0.9892116226474007,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.196116184153064
+        },
+        {
+          "timestamp": "2025-05-22 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07351094471490435,
+          "C_t": 0.9884437719049967,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1958397578857987
+        },
+        {
+          "timestamp": "2025-05-23 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07351094471490435,
+          "C_t": 0.9921402537809815,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7957557370417299
+        },
+        {
+          "timestamp": "2025-05-24 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07351094471490435,
+          "C_t": 0.9928262504075152,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7961261752200581
+        },
+        {
+          "timestamp": "2025-05-25 00:00:00-04:00",
+          "report_valid": false,
+          "M_t": -0.07351094471490435,
+          "C_t": 0.9926489055285096,
+          "Q_t": 0.8142857142857144,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.0
+        },
+        {
+          "timestamp": "2025-05-26 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07351094471490435,
+          "C_t": 0.9960905309293456,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7978888867018465
+        },
+        {
+          "timestamp": "2025-05-27 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07351094471490435,
+          "C_t": 0.9931601967846114,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.79630650626369
+        },
+        {
+          "timestamp": "2025-05-28 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07351094471490435,
+          "C_t": 0.9843538347771164,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7915510707796427
+        },
+        {
+          "timestamp": "2025-05-29 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07351094471490435,
+          "C_t": 0.9794549160411569,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7889056546622246
+        },
+        {
+          "timestamp": "2025-05-30 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07351094471490435,
+          "C_t": 0.9895128237561488,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7943369248283205
+        },
+        {
+          "timestamp": "2025-05-31 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07351094471490435,
+          "C_t": 0.9892671248664998,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7942042474279098
+        },
+        {
+          "timestamp": "2025-06-01 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07351094471490435,
+          "C_t": 0.9926489055285096,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7960304089853951
+        },
+        {
+          "timestamp": "2025-06-02 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07351094471490435,
+          "C_t": 0.9946744209596828,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7971241873182286
+        },
+        {
+          "timestamp": "2025-06-03 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07351094471490435,
+          "C_t": 0.9896936983499243,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.794434597108959
+        },
+        {
+          "timestamp": "2025-06-04 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07351094471490435,
+          "C_t": 0.9891976217380338,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7941667157385381
+        },
+        {
+          "timestamp": "2025-06-05 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07351094471490435,
+          "C_t": 0.9899748803967238,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.794586435414231
+        },
+        {
+          "timestamp": "2025-06-06 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07517916140869649,
+          "C_t": 0.9870107733070361,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7929858175857996
+        },
+        {
+          "timestamp": "2025-06-07 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07670836004467263,
+          "C_t": 0.9918789149349948,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.795614614064897
+        },
+        {
+          "timestamp": "2025-06-08 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07670836004467263,
+          "C_t": 0.9888681169503433,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7939887831531853
+        },
+        {
+          "timestamp": "2025-06-09 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07670836004467263,
+          "C_t": 0.9887187961638133,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.793908149928459
+        },
+        {
+          "timestamp": "2025-06-10 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07670836004467263,
+          "C_t": 0.991176663013194,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7952353980271247
+        },
+        {
+          "timestamp": "2025-06-11 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07670836004467263,
+          "C_t": 0.9818652552699889,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.790207237845794
+        },
+        {
+          "timestamp": "2025-06-12 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07811522278977068,
+          "C_t": 0.9900512822928439,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7946276924381357
+        },
+        {
+          "timestamp": "2025-06-13 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07811522278977068,
+          "C_t": 0.9916206568837601,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7954751547172303
+        },
+        {
+          "timestamp": "2025-06-14 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07811522278977068,
+          "C_t": 0.9919336004015881,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7956441442168576
+        },
+        {
+          "timestamp": "2025-06-15 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07811522278977068,
+          "C_t": 0.9844619300840596,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.791609442245392
+        },
+        {
+          "timestamp": "2025-06-16 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07811522278977068,
+          "C_t": 0.9855139165003411,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.792177514910184
+        },
+        {
+          "timestamp": "2025-06-17 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07941386532370731,
+          "C_t": 0.9886702323967438,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 0.8,
+          "gross_cap_effective": 1.4351055403953934
+        },
+        {
+          "timestamp": "2025-06-18 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.07941386532370731,
+          "C_t": 0.9880850007191524,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7935659003883422
+        },
+        {
+          "timestamp": "2025-06-19 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.08061631211438941,
+          "C_t": 0.988404078927569,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.793738202620887
+        },
+        {
+          "timestamp": "2025-06-20 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.08061631211438941,
+          "C_t": 0.9926199205510413,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7960147570975622
+        },
+        {
+          "timestamp": "2025-06-21 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12061631211438945,
+          "C_t": 0.978232484630086,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7882455417002465
+        },
+        {
+          "timestamp": "2025-06-22 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12061631211438945,
+          "C_t": 0.9728012977770373,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7853127007996001
+        },
+        {
+          "timestamp": "2025-06-23 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12061631211438945,
+          "C_t": 0.9712828097337775,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7844927172562397
+        },
+        {
+          "timestamp": "2025-06-24 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12061631211438945,
+          "C_t": 0.9857546744435493,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7923075241995166
+        },
+        {
+          "timestamp": "2025-06-25 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12061631211438945,
+          "C_t": 0.9888926217618069,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7940020157513756
+        },
+        {
+          "timestamp": "2025-06-26 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12061631211438945,
+          "C_t": 0.9915975557624918,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7954626801117457
+        },
+        {
+          "timestamp": "2025-06-27 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12061631211438945,
+          "C_t": 0.993615731486251,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7965524950025755
+        },
+        {
+          "timestamp": "2025-06-28 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12061631211438945,
+          "C_t": 0.9893328287313103,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7942397275149073
+        },
+        {
+          "timestamp": "2025-06-29 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12061631211438945,
+          "C_t": 0.9899041161353765,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7945482227131033
+        },
+        {
+          "timestamp": "2025-06-30 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12061631211438945,
+          "C_t": 0.9922646056043226,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7958228870263342
+        },
+        {
+          "timestamp": "2025-07-01 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12061631211438945,
+          "C_t": 0.991263414725954,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.795282243952015
+        },
+        {
+          "timestamp": "2025-07-02 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12061631211438945,
+          "C_t": 0.9891482126621726,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.7941400348375733
+        },
+        {
+          "timestamp": "2025-07-03 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12061631211438945,
+          "C_t": 0.9920902093930666,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.795728713072256
+        },
+        {
+          "timestamp": "2025-07-04 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.10923286984859423,
+          "C_t": 0.9927694642938274,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1973970071457776
+        },
+        {
+          "timestamp": "2025-07-05 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.10923286984859423,
+          "C_t": 0.9915200619138836,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1969472222889979
+        },
+        {
+          "timestamp": "2025-07-06 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.10923286984859423,
+          "C_t": 0.9877061622434886,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1955742184076557
+        },
+        {
+          "timestamp": "2025-07-07 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.10923286984859423,
+          "C_t": 0.9896726267568583,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1962821456324688
+        },
+        {
+          "timestamp": "2025-07-08 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.10923286984859423,
+          "C_t": 0.9872728580981529,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.195418228915335
+        },
+        {
+          "timestamp": "2025-07-09 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.10923286984859423,
+          "C_t": 0.9889310806751925,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1960151890430692
+        },
+        {
+          "timestamp": "2025-07-10 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.10923286984859423,
+          "C_t": 0.9786646394568371,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1923192702044614
+        },
+        {
+          "timestamp": "2025-07-11 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.10923286984859423,
+          "C_t": 0.978091564630023,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1921129632668082
+        },
+        {
+          "timestamp": "2025-07-12 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12277242360112972,
+          "C_t": 0.9706846090120639,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.189446459244343
+        },
+        {
+          "timestamp": "2025-07-13 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12277242360112972,
+          "C_t": 0.9712991036273436,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1896676773058437
+        },
+        {
+          "timestamp": "2025-07-14 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12277242360112972,
+          "C_t": 0.9704457379881559,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.189360465675736
+        },
+        {
+          "timestamp": "2025-07-15 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12277242360112972,
+          "C_t": 0.9765678651660749,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1915644314597869
+        },
+        {
+          "timestamp": "2025-07-16 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12277242360112972,
+          "C_t": 0.9809781183936412,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1931521226217108
+        },
+        {
+          "timestamp": "2025-07-17 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12277242360112972,
+          "C_t": 0.9759315109393284,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.191335343938158
+        },
+        {
+          "timestamp": "2025-07-18 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12277242360112972,
+          "C_t": 0.9745518272479907,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1908386578092764
+        },
+        {
+          "timestamp": "2025-07-19 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12277242360112972,
+          "C_t": 0.9696963505682378,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1890906862045654
+        },
+        {
+          "timestamp": "2025-07-20 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12277242360112972,
+          "C_t": 0.9706256630598666,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.189425238701552
+        },
+        {
+          "timestamp": "2025-07-21 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12277242360112972,
+          "C_t": 0.9706328980339396,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.189427843292218
+        },
+        {
+          "timestamp": "2025-07-22 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12277242360112972,
+          "C_t": 0.9707200924981132,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1894592332993208
+        },
+        {
+          "timestamp": "2025-07-23 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12277242360112972,
+          "C_t": 0.9734243671639174,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1904327721790102
+        },
+        {
+          "timestamp": "2025-07-24 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12277242360112972,
+          "C_t": 0.9791963188975445,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.192510674803116
+        },
+        {
+          "timestamp": "2025-07-25 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12374267377016286,
+          "C_t": 0.9822907105016296,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1936246557805867
+        },
+        {
+          "timestamp": "2025-07-26 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12374267377016286,
+          "C_t": 0.9807624227723198,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1930744721980349
+        },
+        {
+          "timestamp": "2025-07-27 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12374267377016286,
+          "C_t": 0.9791452435398639,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.192492287674351
+        },
+        {
+          "timestamp": "2025-07-28 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12374267377016286,
+          "C_t": 0.9788045577659258,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1923696407957332
+        },
+        {
+          "timestamp": "2025-07-29 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12374267377016286,
+          "C_t": 0.9718123342918225,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1898524403450559
+        },
+        {
+          "timestamp": "2025-07-30 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12374267377016286,
+          "C_t": 0.9730116262702504,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.19028418545729
+        },
+        {
+          "timestamp": "2025-07-31 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.11456375220153542,
+          "C_t": 0.9648132094948505,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.187332755418146
+        },
+        {
+          "timestamp": "2025-08-01 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.11456375220153542,
+          "C_t": 0.9816646577001799,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1933992767720647
+        },
+        {
+          "timestamp": "2025-08-02 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12630060603397747,
+          "C_t": 0.9675313777107688,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1883112959758766
+        },
+        {
+          "timestamp": "2025-08-03 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12630060603397747,
+          "C_t": 0.976073130331062,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1913863269191822
+        },
+        {
+          "timestamp": "2025-08-04 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12630060603397747,
+          "C_t": 0.9698243259382371,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1891367573377651
+        },
+        {
+          "timestamp": "2025-08-05 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12630060603397747,
+          "C_t": 0.9828987834067532,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.193843562026431
+        },
+        {
+          "timestamp": "2025-08-06 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12630060603397747,
+          "C_t": 0.982446626547248,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.193680785557009
+        },
+        {
+          "timestamp": "2025-08-07 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12630060603397747,
+          "C_t": 0.9820918762876633,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1935530754635586
+        },
+        {
+          "timestamp": "2025-08-08 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12630060603397747,
+          "C_t": 0.9775926009285747,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1919333363342868
+        },
+        {
+          "timestamp": "2025-08-09 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12630060603397747,
+          "C_t": 0.986087714033787,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.194991577052163
+        },
+        {
+          "timestamp": "2025-08-10 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12630060603397747,
+          "C_t": 0.9816021834823978,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.193376786053663
+        },
+        {
+          "timestamp": "2025-08-11 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12630060603397747,
+          "C_t": 0.9742145980854817,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1907172553107734
+        },
+        {
+          "timestamp": "2025-08-12 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12630060603397747,
+          "C_t": 0.9793116978633224,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.192552211230796
+        },
+        {
+          "timestamp": "2025-08-13 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12630060603397747,
+          "C_t": 0.9740700837037193,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1906652301333387
+        },
+        {
+          "timestamp": "2025-08-14 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12705293905274648,
+          "C_t": 0.9717765368343979,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1898395532603832
+        },
+        {
+          "timestamp": "2025-08-15 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12705293905274648,
+          "C_t": 0.9822199427888341,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7957327862693202
+        },
+        {
+          "timestamp": "2025-08-16 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12705293905274648,
+          "C_t": 0.9880174764184418,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7971241943404261
+        },
+        {
+          "timestamp": "2025-08-17 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12705293905274648,
+          "C_t": 0.9884720250345689,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7972332860082965
+        },
+        {
+          "timestamp": "2025-08-18 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.12705293905274648,
+          "C_t": 0.9751935917324523,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7940464620157885
+        },
+        {
+          "timestamp": "2025-08-19 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1277622816133001,
+          "C_t": 0.970437989486197,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 0.8,
+          "gross_cap_effective": 0.6343240939813498
+        },
+        {
+          "timestamp": "2025-08-20 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1277622816133001,
+          "C_t": 0.9738259754559319,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7937182341094235
+        },
+        {
+          "timestamp": "2025-08-21 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1277622816133001,
+          "C_t": 0.9881838413121349,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7971641219149124
+        },
+        {
+          "timestamp": "2025-08-22 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1277622816133001,
+          "C_t": 0.987732962972814,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7970559111134753
+        },
+        {
+          "timestamp": "2025-08-23 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1277622816133001,
+          "C_t": 0.9783516076103169,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7948043858264762
+        },
+        {
+          "timestamp": "2025-08-24 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1277622816133001,
+          "C_t": 0.9758245769201633,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7941978984608392
+        },
+        {
+          "timestamp": "2025-08-25 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1677622816133001,
+          "C_t": 0.9801994716422766,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7952478731941464
+        },
+        {
+          "timestamp": "2025-08-26 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1677622816133001,
+          "C_t": 0.9903472112090932,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7976833306901824
+        },
+        {
+          "timestamp": "2025-08-27 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1677622816133001,
+          "C_t": 0.9807490804487227,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7953797793076934
+        },
+        {
+          "timestamp": "2025-08-28 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1677622816133001,
+          "C_t": 0.9869827888252822,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7968758693180678
+        },
+        {
+          "timestamp": "2025-08-29 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1677622816133001,
+          "C_t": 0.9860040850429538,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1949614706154632
+        },
+        {
+          "timestamp": "2025-08-30 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1677622816133001,
+          "C_t": 0.9786666111082607,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1923199799989739
+        },
+        {
+          "timestamp": "2025-08-31 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1677622816133001,
+          "C_t": 0.9845174120543673,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.194426268339572
+        },
+        {
+          "timestamp": "2025-09-01 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1677622816133001,
+          "C_t": 0.9773820628488457,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1918575426255842
+        },
+        {
+          "timestamp": "2025-09-02 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1677622816133001,
+          "C_t": 0.9751478163679154,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1910532138924494
+        },
+        {
+          "timestamp": "2025-09-03 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1677622816133001,
+          "C_t": 0.9748661435298163,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1909518116707338
+        },
+        {
+          "timestamp": "2025-09-04 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1677622816133001,
+          "C_t": 0.9891789948359219,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1961044381409318
+        },
+        {
+          "timestamp": "2025-09-05 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1677622816133001,
+          "C_t": 0.9863421109942008,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1950831599579121
+        },
+        {
+          "timestamp": "2025-09-06 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.15870999403160074,
+          "C_t": 0.9872749321146199,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.195418975561263
+        },
+        {
+          "timestamp": "2025-09-07 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.15870999403160074,
+          "C_t": 0.9846432407481699,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.194471566669341
+        },
+        {
+          "timestamp": "2025-09-08 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.15870999403160074,
+          "C_t": 0.9909562658715563,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1967442557137602
+        },
+        {
+          "timestamp": "2025-09-09 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.15870999403160074,
+          "C_t": 0.9932781732760043,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1975801423793615
+        },
+        {
+          "timestamp": "2025-09-10 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.15870999403160074,
+          "C_t": 0.9919419370542113,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.197099097339516
+        },
+        {
+          "timestamp": "2025-09-11 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.15870999403160074,
+          "C_t": 0.9862269244179122,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1950416927904484
+        },
+        {
+          "timestamp": "2025-09-12 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.16966630638110194,
+          "C_t": 0.9873250840229837,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.195437030248274
+        },
+        {
+          "timestamp": "2025-09-13 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.16966630638110194,
+          "C_t": 0.9815647681181668,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.19336331652254
+        },
+        {
+          "timestamp": "2025-09-14 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.16966630638110194,
+          "C_t": 0.9786025711187469,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1922969256027487
+        },
+        {
+          "timestamp": "2025-09-15 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.16966630638110194,
+          "C_t": 0.9809673582642799,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1931482489751406
+        },
+        {
+          "timestamp": "2025-09-16 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.16966630638110194,
+          "C_t": 0.9869927994048618,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1953174077857502
+        },
+        {
+          "timestamp": "2025-09-17 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.16966630638110194,
+          "C_t": 0.9901856820460042,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1964668455365615
+        },
+        {
+          "timestamp": "2025-09-18 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.1702358864398461,
+          "C_t": 0.9917790823581335,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.197040469648928
+        },
+        {
+          "timestamp": "2025-09-19 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17077698749565304,
+          "C_t": 0.992630893599591,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 0.8,
+          "gross_cap_effective": 0.9578776973566822
+        },
+        {
+          "timestamp": "2025-09-20 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17077698749565304,
+          "C_t": 0.9852371394967685,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1946853702188365
+        },
+        {
+          "timestamp": "2025-09-21 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17077698749565304,
+          "C_t": 0.9836918730369817,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1941290742933133
+        },
+        {
+          "timestamp": "2025-09-22 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17077698749565304,
+          "C_t": 0.9864489731125368,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1951216303205132
+        },
+        {
+          "timestamp": "2025-09-23 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17077698749565304,
+          "C_t": 0.9744387053533186,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1907979339271946
+        },
+        {
+          "timestamp": "2025-09-24 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17077698749565304,
+          "C_t": 0.9757280030110052,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1912620810839616
+        },
+        {
+          "timestamp": "2025-09-25 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17077698749565304,
+          "C_t": 0.9776998613535236,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1919719500872683
+        },
+        {
+          "timestamp": "2025-09-26 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17077698749565304,
+          "C_t": 0.9763721719213281,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.191493981891678
+        },
+        {
+          "timestamp": "2025-09-27 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17077698749565304,
+          "C_t": 0.9766453058639273,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1915923101110137
+        },
+        {
+          "timestamp": "2025-09-28 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17077698749565304,
+          "C_t": 0.9749743294813196,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1909907586132749
+        },
+        {
+          "timestamp": "2025-09-29 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17077698749565304,
+          "C_t": 0.9806786523611438,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1930443148500116
+        },
+        {
+          "timestamp": "2025-09-30 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17077698749565304,
+          "C_t": 0.9861820620581837,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.195025542340946
+        },
+        {
+          "timestamp": "2025-10-01 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17077698749565304,
+          "C_t": 0.9865967433605393,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.195174827609794
+        },
+        {
+          "timestamp": "2025-10-02 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17077698749565304,
+          "C_t": 0.9845148660541027,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1944253517794767
+        },
+        {
+          "timestamp": "2025-10-03 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17077698749565304,
+          "C_t": 0.984888233573557,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1945597640864805
+        },
+        {
+          "timestamp": "2025-10-04 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17982827874385965,
+          "C_t": 0.9868276308551882,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1952579471078677
+        },
+        {
+          "timestamp": "2025-10-05 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17982827874385965,
+          "C_t": 0.9814163825126467,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1933098977045529
+        },
+        {
+          "timestamp": "2025-10-06 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17982827874385965,
+          "C_t": 0.9776764114299503,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.191963508114782
+        },
+        {
+          "timestamp": "2025-10-07 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17982827874385965,
+          "C_t": 0.9835423813169286,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1940752572740942
+        },
+        {
+          "timestamp": "2025-10-08 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17982827874385965,
+          "C_t": 0.9698508468513816,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1891463048664972
+        },
+        {
+          "timestamp": "2025-10-09 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17982827874385965,
+          "C_t": 0.9760581297152588,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.191380926697493
+        },
+        {
+          "timestamp": "2025-10-10 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17982827874385965,
+          "C_t": 0.9768065623268891,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7944335749584535
+        },
+        {
+          "timestamp": "2025-10-11 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17982827874385965,
+          "C_t": 0.9589174278197279,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7901401826767347
+        },
+        {
+          "timestamp": "2025-10-12 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17982827874385965,
+          "C_t": 0.9600169025583305,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7904040566139994
+        },
+        {
+          "timestamp": "2025-10-13 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17982827874385965,
+          "C_t": 0.9675582099474596,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7922139703873903
+        },
+        {
+          "timestamp": "2025-10-14 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17982827874385965,
+          "C_t": 0.964494967144284,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7914787921146282
+        },
+        {
+          "timestamp": "2025-10-15 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17982827874385965,
+          "C_t": 0.9643028261461193,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7914326782750687
+        },
+        {
+          "timestamp": "2025-10-16 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17178188945643735,
+          "C_t": 0.983337370433002,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7960009689039205
+        },
+        {
+          "timestamp": "2025-10-17 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17178188945643735,
+          "C_t": 0.9798458421041187,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7951630021049886
+        },
+        {
+          "timestamp": "2025-10-18 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17178188945643735,
+          "C_t": 0.9721564302550469,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7933175432612112
+        },
+        {
+          "timestamp": "2025-10-19 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17178188945643735,
+          "C_t": 0.9688623286058053,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7925269588653934
+        },
+        {
+          "timestamp": "2025-10-20 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17178188945643735,
+          "C_t": 0.9762773541233623,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7943065649896068
+        },
+        {
+          "timestamp": "2025-10-21 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17178188945643735,
+          "C_t": 0.9779855685775579,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.794716536458614
+        },
+        {
+          "timestamp": "2025-10-22 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17178188945643735,
+          "C_t": 0.9703330864143627,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.792879940739447
+        },
+        {
+          "timestamp": "2025-10-23 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17178188945643735,
+          "C_t": 0.9673364551876376,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.792160749245033
+        },
+        {
+          "timestamp": "2025-10-24 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17178188945643735,
+          "C_t": 0.976711309114763,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7944107141875432
+        },
+        {
+          "timestamp": "2025-10-25 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17178188945643735,
+          "C_t": 0.9703469987311487,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7928832796954757
+        },
+        {
+          "timestamp": "2025-10-26 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17178188945643735,
+          "C_t": 0.978443200135954,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7948263680326288
+        },
+        {
+          "timestamp": "2025-10-27 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17178188945643735,
+          "C_t": 0.987327406052888,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7969585774526932
+        },
+        {
+          "timestamp": "2025-10-28 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17178188945643735,
+          "C_t": 0.9848705451560458,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.796368930837451
+        },
+        {
+          "timestamp": "2025-10-29 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17178188945643735,
+          "C_t": 0.9778619564123339,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7946868695389601
+        },
+        {
+          "timestamp": "2025-10-30 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.17224928571726728,
+          "C_t": 0.9714083671466225,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7931380081151893
+        },
+        {
+          "timestamp": "2025-10-31 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.16534398095970532,
+          "C_t": 0.981736971059264,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7956168730542234
+        },
+        {
+          "timestamp": "2025-11-01 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.16534398095970532,
+          "C_t": 0.9767021269108783,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7944085104586108
+        },
+        {
+          "timestamp": "2025-11-02 00:00:00-04:00",
+          "report_valid": true,
+          "M_t": -0.16534398095970532,
+          "C_t": 0.9739448515306817,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7937467643673636
+        },
+        {
+          "timestamp": "2025-11-03 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.16534398095970532,
+          "C_t": 0.9685482718417504,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7924515852420201
+        },
+        {
+          "timestamp": "2025-11-04 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.16534398095970532,
+          "C_t": 0.9662400278191344,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7918976066765923
+        },
+        {
+          "timestamp": "2025-11-05 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.16534398095970532,
+          "C_t": 0.9568621631871114,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7896469191649067
+        },
+        {
+          "timestamp": "2025-11-06 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.16534398095970532,
+          "C_t": 0.9654787241196219,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7917148937887092
+        },
+        {
+          "timestamp": "2025-11-07 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.16534398095970532,
+          "C_t": 0.9648870321625928,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7915728877190222
+        },
+        {
+          "timestamp": "2025-11-08 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15831215373606225,
+          "C_t": 0.9694932571522291,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7926783817165349
+        },
+        {
+          "timestamp": "2025-11-09 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15831215373606225,
+          "C_t": 0.9706579018993151,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7929578964558357
+        },
+        {
+          "timestamp": "2025-11-10 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15831215373606225,
+          "C_t": 0.9863529009010729,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7967246962162575
+        },
+        {
+          "timestamp": "2025-11-11 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15831215373606225,
+          "C_t": 0.9905248139408646,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7977259553458075
+        },
+        {
+          "timestamp": "2025-11-12 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15831215373606225,
+          "C_t": 0.9882090262849167,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.79717016630838
+        },
+        {
+          "timestamp": "2025-11-13 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15831215373606225,
+          "C_t": 0.9796976529249621,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7951274367019909
+        },
+        {
+          "timestamp": "2025-11-14 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15902636171342527,
+          "C_t": 0.9716744708238788,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7932018729977308
+        },
+        {
+          "timestamp": "2025-11-15 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15902636171342527,
+          "C_t": 0.9663865807269203,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7919327793744609
+        },
+        {
+          "timestamp": "2025-11-16 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15902636171342527,
+          "C_t": 0.9635344822175488,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7912482757322117
+        },
+        {
+          "timestamp": "2025-11-17 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15902636171342527,
+          "C_t": 0.9664607831299075,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7919505879511779
+        },
+        {
+          "timestamp": "2025-11-18 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1597108110250648,
+          "C_t": 0.9492946096536177,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 0.8,
+          "gross_cap_effective": 0.6302645650534946
+        },
+        {
+          "timestamp": "2025-11-19 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1597108110250648,
+          "C_t": 0.9576567747916392,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7898376259499934
+        },
+        {
+          "timestamp": "2025-11-20 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1597108110250648,
+          "C_t": 0.9695447407540134,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7926907377809633
+        },
+        {
+          "timestamp": "2025-11-21 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1597108110250648,
+          "C_t": 0.9596903426739647,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7903256822417515
+        },
+        {
+          "timestamp": "2025-11-22 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1597108110250648,
+          "C_t": 0.9597530846961444,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7903407403270747
+        },
+        {
+          "timestamp": "2025-11-23 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1597108110250648,
+          "C_t": 0.9669591203721665,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.79207018888932
+        },
+        {
+          "timestamp": "2025-11-24 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1597108110250648,
+          "C_t": 0.9668869273696266,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7920528625687103
+        },
+        {
+          "timestamp": "2025-11-25 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1597108110250648,
+          "C_t": 0.9793153371421314,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7950356809141115
+        },
+        {
+          "timestamp": "2025-11-26 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1597108110250648,
+          "C_t": 0.9854701028707686,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7965128246889844
+        },
+        {
+          "timestamp": "2025-11-27 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1597108110250648,
+          "C_t": 0.9863031910227078,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7967127658454498
+        },
+        {
+          "timestamp": "2025-11-28 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1597108110250648,
+          "C_t": 0.9877255986740047,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1955812155226415
+        },
+        {
+          "timestamp": "2025-11-29 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1597108110250648,
+          "C_t": 0.9850974584235848,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1946350850324905
+        },
+        {
+          "timestamp": "2025-11-30 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1597108110250648,
+          "C_t": 0.9740714832762811,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.190665733979461
+        },
+        {
+          "timestamp": "2025-12-01 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1597108110250648,
+          "C_t": 0.9651445703926211,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1874520453413435
+        },
+        {
+          "timestamp": "2025-12-02 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1597108110250648,
+          "C_t": 0.9644121832907783,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1871883859846801
+        },
+        {
+          "timestamp": "2025-12-03 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1597108110250648,
+          "C_t": 0.9793711912975773,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1925736288671276
+        },
+        {
+          "timestamp": "2025-12-04 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1597108110250648,
+          "C_t": 0.9934623921134188,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1976464611608306
+        },
+        {
+          "timestamp": "2025-12-05 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1597108110250648,
+          "C_t": 0.9882885573827636,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7971892537718633
+        },
+        {
+          "timestamp": "2025-12-06 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1603673236301068,
+          "C_t": 0.9879546141178006,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7971091073882722
+        },
+        {
+          "timestamp": "2025-12-07 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1603673236301068,
+          "C_t": 0.9856112158667708,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.796546691808025
+        },
+        {
+          "timestamp": "2025-12-08 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1603673236301068,
+          "C_t": 0.9819400074424031,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7956656017861767
+        },
+        {
+          "timestamp": "2025-12-09 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1603673236301068,
+          "C_t": 0.9829893476556743,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7959174434373618
+        },
+        {
+          "timestamp": "2025-12-10 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1603673236301068,
+          "C_t": 0.9888479899714517,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7973235175931483
+        },
+        {
+          "timestamp": "2025-12-11 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1684658571611663,
+          "C_t": 0.9908605112346945,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7978065226963267
+        },
+        {
+          "timestamp": "2025-12-12 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1684658571611663,
+          "C_t": 0.9849591644457136,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7963901994669712
+        },
+        {
+          "timestamp": "2025-12-13 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1684658571611663,
+          "C_t": 0.9875966159979408,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7970231878395059
+        },
+        {
+          "timestamp": "2025-12-14 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1684658571611663,
+          "C_t": 0.9848787657305963,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.796370903775343
+        },
+        {
+          "timestamp": "2025-12-15 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1684658571611663,
+          "C_t": 0.9771711274101729,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7945210705784415
+        },
+        {
+          "timestamp": "2025-12-16 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1684658571611663,
+          "C_t": 0.9756655699403104,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7941597367856744
+        },
+        {
+          "timestamp": "2025-12-17 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1684658571611663,
+          "C_t": 0.9721155885408754,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7933077412498101
+        },
+        {
+          "timestamp": "2025-12-18 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1684658571611663,
+          "C_t": 0.9650940625228068,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7916225750054736
+        },
+        {
+          "timestamp": "2025-12-19 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.9748167636000735,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 0.8,
+          "gross_cap_effective": 0.952747227916821
+        },
+        {
+          "timestamp": "2025-12-20 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.9781421746693466,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1921311828809646
+        },
+        {
+          "timestamp": "2025-12-21 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.9853313739063256,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.194719294606277
+        },
+        {
+          "timestamp": "2025-12-22 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.985392340148294,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1947412424533856
+        },
+        {
+          "timestamp": "2025-12-23 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.9814668926837576,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1933280813661526
+        },
+        {
+          "timestamp": "2025-12-24 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.9767957140281698,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.191646457050141
+        },
+        {
+          "timestamp": "2025-12-25 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.9770502388410074,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 1.1917380859827627
+        },
+        {
+          "timestamp": "2025-12-26 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.9784531863693192,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7948287647286366
+        },
+        {
+          "timestamp": "2025-12-27 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.9751735947012887,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7940416627283092
+        },
+        {
+          "timestamp": "2025-12-28 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.9771443546349667,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.794514645112392
+        },
+        {
+          "timestamp": "2025-12-29 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.978770421041937,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7949049010500648
+        },
+        {
+          "timestamp": "2025-12-30 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.975443899568498,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7941065358964394
+        },
+        {
+          "timestamp": "2025-12-31 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.9814203359325232,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7955408806238056
+        },
+        {
+          "timestamp": "2026-01-01 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.971904061752609,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7932569748206262
+        },
+        {
+          "timestamp": "2026-01-02 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.9845632281924931,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7962951747661983
+        },
+        {
+          "timestamp": "2026-01-03 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.9798372768941566,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7951609464545976
+        },
+        {
+          "timestamp": "2026-01-04 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.9809509728191864,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7954282334766047
+        },
+        {
+          "timestamp": "2026-01-05 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.9732392553587454,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7935774212860989
+        },
+        {
+          "timestamp": "2026-01-06 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.9666871401006865,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7920049136241647
+        },
+        {
+          "timestamp": "2026-01-07 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.9705889827867804,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7929413558688273
+        },
+        {
+          "timestamp": "2026-01-08 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.9800027082436285,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7952006499784708
+        },
+        {
+          "timestamp": "2026-01-09 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1693494070295043,
+          "C_t": 0.9871637116309346,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7969192907914243
+        },
+        {
+          "timestamp": "2026-01-10 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.16328515743029356,
+          "C_t": 0.9889679944330465,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7973523186639312
+        },
+        {
+          "timestamp": "2026-01-11 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.16328515743029356,
+          "C_t": 0.9800624096935716,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7952149783264573
+        },
+        {
+          "timestamp": "2026-01-12 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.16328515743029356,
+          "C_t": 0.9843352536572543,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.796240460877741
+        },
+        {
+          "timestamp": "2026-01-13 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.16328515743029356,
+          "C_t": 0.9822907312572393,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7957497755017374
+        },
+        {
+          "timestamp": "2026-01-14 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.16328515743029356,
+          "C_t": 0.9709828461043579,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7930358830650459
+        },
+        {
+          "timestamp": "2026-01-15 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.16328515743029356,
+          "C_t": 0.9750440131268632,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7940105631504472
+        },
+        {
+          "timestamp": "2026-01-16 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15744142599832683,
+          "C_t": 0.9831463986784127,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.795955135682819
+        },
+        {
+          "timestamp": "2026-01-17 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15744142599832683,
+          "C_t": 0.9840328449247491,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7961678827819398
+        },
+        {
+          "timestamp": "2026-01-18 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15744142599832683,
+          "C_t": 0.9827616731937064,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7958628015664896
+        },
+        {
+          "timestamp": "2026-01-19 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15744142599832683,
+          "C_t": 0.9810512252904278,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7954522940697027
+        },
+        {
+          "timestamp": "2026-01-20 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15805639926035892,
+          "C_t": 0.9762665658966367,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 0.8,
+          "gross_cap_effective": 0.6354431806521543
+        },
+        {
+          "timestamp": "2026-01-21 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15805639926035892,
+          "C_t": 0.9658581789472291,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.791805962947335
+        },
+        {
+          "timestamp": "2026-01-22 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15805639926035892,
+          "C_t": 0.9744813114303739,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7938755147432897
+        },
+        {
+          "timestamp": "2026-01-23 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15864979451319688,
+          "C_t": 0.9705800279809982,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7929392067154396
+        },
+        {
+          "timestamp": "2026-01-24 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15864979451319688,
+          "C_t": 0.9786989993765491,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7948877598503717
+        },
+        {
+          "timestamp": "2026-01-25 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15864979451319688,
+          "C_t": 0.9739126996195766,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7937390479086984
+        },
+        {
+          "timestamp": "2026-01-26 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15864979451319688,
+          "C_t": 0.9675521578552388,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7922125178852574
+        },
+        {
+          "timestamp": "2026-01-27 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15864979451319688,
+          "C_t": 0.9709273963098162,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7930225751143558
+        },
+        {
+          "timestamp": "2026-01-28 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15864979451319688,
+          "C_t": 0.9716524212050972,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.7931965810892234
+        },
+        {
+          "timestamp": "2026-01-29 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.1592227278607646,
+          "C_t": 0.9678527863196419,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.792284668716714
+        },
+        {
+          "timestamp": "2026-01-30 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15461780200863584,
+          "C_t": 0.9676298593349247,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.792231166240382
+        },
+        {
+          "timestamp": "2026-01-31 00:00:00-05:00",
+          "report_valid": true,
+          "M_t": -0.15461780200863584,
+          "C_t": 0.9613284634476253,
+          "Q_t": 1.0,
+          "event_risk_multiplier": 1.0,
+          "gross_cap_effective": 0.79071883122743
+        }
+      ],
+      "data_coverage": {
+        "news": {
+          "rows": 101,
+          "days": 85,
+          "sources": 22,
+          "asset_classes": {
+            "stock": 47,
+            "forex": 31,
+            "metal": 16,
+            "crypto": 7
+          },
+          "regions": {
+            "US": 68,
+            "EM": 19,
+            "Europe": 14
+          },
+          "catalysts": {
+            "rates_inflation": 31,
+            "growth": 25,
+            "energy": 16,
+            "equity_micro": 14,
+            "geopolitics": 8,
+            "crypto_reg": 7
+          }
+        },
+        "macro": {
+          "rows": 66,
+          "days": 60,
+          "regions": {
+            "US": 40,
+            "Asia-Pacific": 10,
+            "Europe": 9,
+            "EM": 7
+          },
+          "importance": {
+            "high": 59,
+            "medium": 7
+          }
+        }
+      }
+    }
+  },
+  "ablation": {}
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "analysis_overlay_v6.schema.json",
+  "title": "Daily Analysis Overlay v6",
+  "type": "object",
+  "required": ["trading_day", "M_t", "F_t", "A_t", "C_t", "Q_t", "REPORT_VALID"],
+  "properties": {
+    "trading_day": {"type": "string"},
+    "M_t": {"type": "number", "minimum": -1.0, "maximum": 1.0},
+    "F_t": {"type": "object"},
+    "A_t": {"type": "object"},
+    "C_t": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+    "Q_t": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+    "REPORT_VALID": {"type": "boolean"},
+    "event_risk_multiplier": {"type": "number"}
+  }
+}

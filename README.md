@@ -1,10 +1,11 @@
-# Long/Short Mean Reversion Strategy (v5)
+# Long/Short Mean Reversion Strategy (v6)
 
-This repository now runs a **v5 multi-timeframe engine**:
+This repository now runs a **v6 analysis-first multi-timeframe engine**:
+- mandatory daily analysis-report reconstruction layer with point-in-time inputs,
 - `1W` regime scoring (`RISK_ON` / `NEUTRAL` / `RISK_OFF`),
-- `1D` cross-asset signal and target construction,
+- `1D` cross-asset base signal + v6 overlays (`M_t`, `F_c,t`, `A_i,t`, `C_t`, `Q_t`),
 - `4H` staged execution with quality gating,
-- hard data-quality gates and friction stress testing.
+- hard data-quality gates, report-validity gating, and friction stress testing.
 
 ## 1) Setup
 
@@ -46,13 +47,17 @@ Main outputs:
 
 Backtest runs with hard data gates; if the quality report fails, the engine will stop with reasons.
 
-## 3) Run the v5 Backtest
+## 3) Run the Backtest
 
 ```bash
 python backtest_vectorized.py
 ```
 
-This runs the base scenario and prints the latest equity values plus turnover diagnostics.
+Default strategy version is `v6`. To run `v5` explicitly:
+
+```bash
+python -c "from backtest_vectorized import run_backtest; print(run_backtest(strategy_version='v5')['equity'].tail())"
+```
 
 ## 4) Run Full Scenario Matrix + Report Bundle
 
@@ -65,14 +70,16 @@ Optional:
 ```bash
 python backtest_report.py --no-plots
 python backtest_report.py --output-dir data/reports/latest
+python backtest_report.py --strategy-version v5 --no-plots
 ```
 
 Report outputs include:
 - scenario equity CSVs (`base`, `1.5x cost`, `2.0x + delay`, missing-data, liquidity, borrow/funding)
 - `summary.md`
 - `summary.json`
-- `daily_returns.csv`
-- `monthly_returns.csv`
+- `daily_returns_<version>.csv`
+- `monthly_returns_<version>.csv`
+- `overlay_table_v6.csv` and `idea_table_v6.csv` (v6 runs)
 - `equity_curve.png` (unless `--no-plots`)
 
 ## 5) Key Config Knobs
@@ -87,7 +94,7 @@ Edit `long_short_config.py` to tune:
 ## 6) Development Plan Reference
 
 Primary plan used for this implementation:
-- `doc/vibe-coding-development-plan-long-short-mean-reversion-strategy-v5.md`
+- `doc/vibe-coding-development-plan-long-short-mean-reversion-strategy-v6.md`
 
 Strategy spec:
-- `doc/long-short-trading-strategy-v5.md`
+- `doc/long-short-trading-strategy-v6.md`

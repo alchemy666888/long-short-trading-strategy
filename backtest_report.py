@@ -9,11 +9,13 @@ from typing import Dict, Tuple
 import numpy as np
 import pandas as pd
 
+from ablation_runner import run_ablation_suite
 from backtest_vectorized import run_backtest
 from long_short_config import (
     STRESS_LIQUIDITY_HAIRCUT,
     STRESS_MISSING_DATA_RATIO,
     STRESS_SHORT_BORROW_BPS_PER_DAY,
+    STRATEGY_VERSION,
 )
 
 BARS_PER_YEAR = 252
@@ -32,6 +34,18 @@ class BacktestSummary:
     sharpe: float
     max_drawdown_pct: float
     max_drawdown_at: str
+
+
+def _json_default(obj):
+    if isinstance(obj, (pd.Timestamp, pd.Timedelta)):
+        return str(obj)
+    if isinstance(obj, np.integer):
+        return int(obj)
+    if isinstance(obj, np.floating):
+        return float(obj)
+    if isinstance(obj, np.bool_):
+        return bool(obj)
+    return str(obj)
 
 
 def _annualized_return(total_return: float, bars: int) -> float:
@@ -67,35 +81,8 @@ def compute_summary(equity: pd.Series) -> BacktestSummary:
     )
 
 
-def _acceptance_checks(
-    base: BacktestSummary,
-    stress_15: BacktestSummary,
-    stress_20_delay: BacktestSummary,
-    median_turnover_pct: float,
-) -> Dict[str, bool]:
-    checks = {
-        "base_sharpe_ge_0_9": bool(base.sharpe >= 0.9 if not np.isnan(base.sharpe) else False),
-        "base_maxdd_le_12pct": bool(base.max_drawdown_pct >= -12.0 if not np.isnan(base.max_drawdown_pct) else False),
-        "stress_1p5x_sharpe_ge_0_4": bool(stress_15.sharpe >= 0.4 if not np.isnan(stress_15.sharpe) else False),
-        "stress_2p0x_delay_non_negative_total_return": bool(
-            stress_20_delay.total_return_pct >= 0.0 if not np.isnan(stress_20_delay.total_return_pct) else False
-        ),
-        "median_daily_turnover_le_35pct": bool(median_turnover_pct <= 35.0),
-    }
-    return checks
-
-
-def _decision(checks: Dict[str, bool], base: BacktestSummary, stress_15: BacktestSummary) -> str:
-    passed = sum(1 for v in checks.values() if v)
-    if passed == len(checks):
-        return "deploy"
-    if base.total_return_pct > 0 and stress_15.total_return_pct > 0:
-        return "refine"
-    return "abandon"
-
-
-def _run_scenarios() -> Tuple[Dict[str, Dict], Dict[str, BacktestSummary]]:
-    scenario_params = {
+def _scenario_params() -> Dict[str, Dict]:
+    return {
         "base": {
             "cost_multiplier": 1.0,
             "one_day_delay": False,
@@ -140,54 +127,198 @@ def _run_scenarios() -> Tuple[Dict[str, Dict], Dict[str, BacktestSummary]]:
         },
     }
 
+
+def _run_scenarios(strategy_version: str) -> Tuple[Dict[str, Dict], Dict[str, BacktestSummary]]:
     results: Dict[str, Dict] = {}
     summaries: Dict[str, BacktestSummary] = {}
 
-    for name, params in scenario_params.items():
-        res = run_backtest(**params)
+    for name, params in _scenario_params().items():
+        res = run_backtest(
+            strategy_version=strategy_version,
+            analysis_ablation=None,
+            persist_analysis_artifacts=False,
+            **params,
+        )
         results[name] = res
         summaries[name] = compute_summary(res["equity"])
 
     return results, summaries
 
 
-def write_report_files(output_dir: Path, make_plots: bool) -> Dict[str, str]:
-    output_dir.mkdir(parents=True, exist_ok=True)
+def _worst_fold_monthly_return(returns: pd.Series) -> float:
+    monthly = returns.resample("ME").sum().dropna()
+    if monthly.empty:
+        return np.nan
+    return float(monthly.min() * 100.0)
 
-    results, summaries = _run_scenarios()
-    base_diag = results["base"]["diagnostics"]
 
-    median_turnover_pct = float(base_diag.get("turnover", {}).get("median_daily_turnover_pct", np.nan))
-    checks = _acceptance_checks(
-        base=summaries["base"],
-        stress_15=summaries["stress_1p5x"],
-        stress_20_delay=summaries["stress_2p0x_delay"],
-        median_turnover_pct=median_turnover_pct,
+def _acceptance_checks_v5(
+    base: BacktestSummary,
+    stress_15: BacktestSummary,
+    stress_20_delay: BacktestSummary,
+    median_turnover_pct: float,
+) -> Dict[str, bool]:
+    return {
+        "base_sharpe_ge_0_9": bool(base.sharpe >= 0.9 if not np.isnan(base.sharpe) else False),
+        "base_maxdd_le_12pct": bool(base.max_drawdown_pct >= -12.0 if not np.isnan(base.max_drawdown_pct) else False),
+        "stress_1p5x_sharpe_ge_0_4": bool(stress_15.sharpe >= 0.4 if not np.isnan(stress_15.sharpe) else False),
+        "stress_2p0x_delay_non_negative_total_return": bool(
+            stress_20_delay.total_return_pct >= 0.0 if not np.isnan(stress_20_delay.total_return_pct) else False
+        ),
+        "median_daily_turnover_le_35pct": bool(median_turnover_pct <= 35.0),
+    }
+
+
+def _acceptance_checks_v6(
+    v6_summaries: Dict[str, BacktestSummary],
+    v5_summaries: Dict[str, BacktestSummary],
+    base_overlay_high_q_share: float,
+    v6_worst_fold_pct: float,
+    v5_worst_fold_pct: float,
+) -> Dict[str, bool]:
+    base_v6 = v6_summaries["base"]
+    base_v5 = v5_summaries["base"]
+    stress_v6 = v6_summaries["stress_1p5x"]
+    stress_v5 = v5_summaries["stress_1p5x"]
+
+    sharpe_uplift = (
+        base_v6.sharpe - base_v5.sharpe
+        if (not np.isnan(base_v6.sharpe) and not np.isnan(base_v5.sharpe))
+        else np.nan
     )
-    decision = _decision(checks, summaries["base"], summaries["stress_1p5x"])
+    stress_sharpe_uplift = (
+        stress_v6.sharpe - stress_v5.sharpe
+        if (not np.isnan(stress_v6.sharpe) and not np.isnan(stress_v5.sharpe))
+        else np.nan
+    )
 
-    generated = {}
+    checks = {
+        "oos_sharpe_uplift_ge_0p20": bool(sharpe_uplift >= 0.20 if not np.isnan(sharpe_uplift) else False),
+        "max_drawdown_not_worse_than_v5": bool(base_v6.max_drawdown_pct >= base_v5.max_drawdown_pct),
+        "cost_stress_sharpe_uplift_ge_0p10": bool(stress_sharpe_uplift >= 0.10 if not np.isnan(stress_sharpe_uplift) else False),
+        "overlay_contrib_high_q_ge_60pct": bool(base_overlay_high_q_share >= 0.60 if not np.isnan(base_overlay_high_q_share) else False),
+        "worst_fold_not_worse_than_v5": bool(v6_worst_fold_pct >= v5_worst_fold_pct)
+        if (not np.isnan(v6_worst_fold_pct) and not np.isnan(v5_worst_fold_pct))
+        else False,
+    }
+    return checks
 
+
+def _decision(strategy_version: str, checks: Dict[str, bool], base: BacktestSummary, reference_base: BacktestSummary | None = None) -> str:
+    passed = sum(1 for v in checks.values() if v)
+    if passed == len(checks):
+        return "deploy"
+
+    if strategy_version == "v5":
+        return "refine" if base.total_return_pct > 0 else "abandon"
+
+    if reference_base is not None and not np.isnan(base.sharpe) and not np.isnan(reference_base.sharpe):
+        if base.total_return_pct > 0 and base.sharpe >= reference_base.sharpe:
+            return "refine"
+    return "abandon"
+
+
+def _write_scenario_csvs(output_dir: Path, strategy_version: str, results: Dict[str, Dict]) -> Dict[str, str]:
+    generated: Dict[str, str] = {}
     for scenario, result in results.items():
-        equity_path = output_dir / f"equity_{scenario}.csv"
+        equity_path = output_dir / f"equity_{strategy_version}_{scenario}.csv"
         result["equity"].to_frame("equity").to_csv(equity_path)
         generated[f"equity_{scenario}"] = str(equity_path)
 
-    base_returns = results["base"]["daily_returns"].rename("daily_return")
-    daily_returns_path = output_dir / "daily_returns.csv"
-    monthly_returns_path = output_dir / "monthly_returns.csv"
-    base_returns.to_frame().to_csv(daily_returns_path)
-    base_returns.resample("ME").sum().to_frame("monthly_return").to_csv(monthly_returns_path)
+    returns = results["base"]["daily_returns"].rename("daily_return")
+    daily_returns_path = output_dir / f"daily_returns_{strategy_version}.csv"
+    monthly_returns_path = output_dir / f"monthly_returns_{strategy_version}.csv"
+    returns.to_frame().to_csv(daily_returns_path)
+    returns.resample("ME").sum().to_frame("monthly_return").to_csv(monthly_returns_path)
+
     generated["daily_returns"] = str(daily_returns_path)
     generated["monthly_returns"] = str(monthly_returns_path)
+    return generated
+
+
+def write_report_files(output_dir: Path, make_plots: bool, strategy_version: str, run_ablation: bool = True) -> Dict[str, str]:
+    strategy_version = strategy_version.lower().strip()
+    if strategy_version not in {"v5", "v6"}:
+        raise ValueError(f"Unsupported strategy version: {strategy_version}")
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    results, summaries = _run_scenarios(strategy_version=strategy_version)
+    generated = _write_scenario_csvs(output_dir=output_dir, strategy_version=strategy_version, results=results)
+
+    base_diag = results["base"]["diagnostics"]
+    median_turnover_pct = float(base_diag.get("turnover", {}).get("median_daily_turnover_pct", np.nan))
+
+    comparison = {}
+    if strategy_version == "v5":
+        checks = _acceptance_checks_v5(
+            base=summaries["base"],
+            stress_15=summaries["stress_1p5x"],
+            stress_20_delay=summaries["stress_2p0x_delay"],
+            median_turnover_pct=median_turnover_pct,
+        )
+        decision = _decision(strategy_version, checks, summaries["base"])
+    else:
+        v5_results, v5_summaries = _run_scenarios(strategy_version="v5")
+        base_overlay_high_q_share = float(base_diag.get("analysis", {}).get("overlay_high_q_share", np.nan))
+
+        v6_worst_fold = _worst_fold_monthly_return(results["base"]["daily_returns"])
+        v5_worst_fold = _worst_fold_monthly_return(v5_results["base"]["daily_returns"])
+
+        checks = _acceptance_checks_v6(
+            v6_summaries=summaries,
+            v5_summaries=v5_summaries,
+            base_overlay_high_q_share=base_overlay_high_q_share,
+            v6_worst_fold_pct=v6_worst_fold,
+            v5_worst_fold_pct=v5_worst_fold,
+        )
+        decision = _decision(strategy_version, checks, summaries["base"], reference_base=v5_summaries["base"])
+
+        comparison = {
+            "v5_base": asdict(v5_summaries["base"]),
+            "v6_base": asdict(summaries["base"]),
+            "base_sharpe_uplift": (
+                summaries["base"].sharpe - v5_summaries["base"].sharpe
+                if (not np.isnan(summaries["base"].sharpe) and not np.isnan(v5_summaries["base"].sharpe))
+                else np.nan
+            ),
+            "stress_1p5x_sharpe_uplift": (
+                summaries["stress_1p5x"].sharpe - v5_summaries["stress_1p5x"].sharpe
+                if (not np.isnan(summaries["stress_1p5x"].sharpe) and not np.isnan(v5_summaries["stress_1p5x"].sharpe))
+                else np.nan
+            ),
+            "overlay_high_q_share": base_overlay_high_q_share,
+            "worst_fold_monthly_return_pct": {
+                "v6": v6_worst_fold,
+                "v5": v5_worst_fold,
+            },
+        }
+
+    if strategy_version == "v6":
+        overlay_table = results["base"].get("overlay_table", pd.DataFrame())
+        idea_table = results["base"].get("idea_table", pd.DataFrame())
+
+        overlay_path = output_dir / "overlay_table_v6.csv"
+        idea_path = output_dir / "idea_table_v6.csv"
+        if not overlay_table.empty:
+            overlay_table.to_csv(overlay_path)
+            generated["overlay_table"] = str(overlay_path)
+        if not idea_table.empty:
+            idea_table.to_csv(idea_path, index=False)
+            generated["idea_table"] = str(idea_path)
+
+    ablation_payload = {}
+    if run_ablation and strategy_version == "v6":
+        ablation_payload = run_ablation_suite()
 
     summary_json_path = output_dir / "summary.json"
     summary_json = {
-        "strategy_version": "v5",
-        "hypothesis": "Weekly-regime plus daily trend/reversal scoring with 4H staged execution can preserve net edge under friction and turnover constraints.",
+        "strategy_version": strategy_version,
+        "leverage_multiplier": base_diag.get("leverage_multiplier"),
         "scenarios": {name: asdict(summary) for name, summary in summaries.items()},
         "acceptance_checks": checks,
         "decision": decision,
+        "comparison": comparison,
         "diagnostics": {
             "regime_state_attribution": base_diag.get("regime_attribution", {}),
             "turnover": base_diag.get("turnover", {}),
@@ -203,21 +334,18 @@ def write_report_files(output_dir: Path, make_plots: bool) -> Dict[str, str]:
                 "by_type": base_diag.get("risk_events", {}).get("by_type", {}),
             },
             "data_quality": base_diag.get("quality", {}),
+            "analysis": base_diag.get("analysis", {}),
         },
+        "ablation": ablation_payload,
     }
 
-    summary_json_path.write_text(json.dumps(summary_json, indent=2), encoding="utf-8")
+    summary_json_path.write_text(json.dumps(summary_json, indent=2, default=_json_default), encoding="utf-8")
     generated["summary_json"] = str(summary_json_path)
 
     summary_md_path = output_dir / "summary.md"
     with summary_md_path.open("w", encoding="utf-8") as f:
-        f.write("# Backtest Summary (v5)\n\n")
-        f.write("## 1. Hypothesis\n")
-        f.write(
-            "Weekly-regime plus daily trend/reversal scoring with 4H staged execution can preserve net edge under friction and turnover constraints.\n\n"
-        )
-
-        f.write("## 2. Scenarios\n")
+        f.write(f"# Backtest Summary ({strategy_version})\n\n")
+        f.write("## 1. Scenario Overview\n")
         for name in [
             "base",
             "stress_1p5x",
@@ -232,53 +360,16 @@ def write_report_files(output_dir: Path, make_plots: bool) -> Dict[str, str]:
             f.write(f"- Sharpe: {s.sharpe:.3f}\n")
             f.write(f"- Max drawdown: {s.max_drawdown_pct:.2f}%\n")
 
-        f.write("\n## 3. Regime-State Attribution (Base)\n")
-        for state, metrics in base_diag.get("regime_attribution", {}).items():
-            f.write(f"### {state}\n")
-            f.write(f"- Total return: {metrics.get('total_return_pct', float('nan')):.2f}%\n")
-            f.write(f"- Sharpe: {metrics.get('sharpe', float('nan')):.3f}\n")
-            f.write(f"- Max drawdown: {metrics.get('max_drawdown_pct', float('nan')):.2f}%\n")
+        if comparison:
+            f.write("\n## 2. v6 vs v5 Comparison\n")
+            f.write(f"- Base Sharpe uplift: {comparison.get('base_sharpe_uplift', float('nan')):.3f}\n")
+            f.write(f"- Stress 1.5x Sharpe uplift: {comparison.get('stress_1p5x_sharpe_uplift', float('nan')):.3f}\n")
+            f.write(f"- Overlay high-Q contribution share: {comparison.get('overlay_high_q_share', float('nan')):.3f}\n")
 
-        turnover = base_diag.get("turnover", {})
-        f.write("\n## 4. Turnover Decomposition (Base)\n")
-        f.write(f"- Raw turnover (avg daily): {turnover.get('avg_raw_turnover', 0.0) * 100.0:.2f}%\n")
-        f.write(f"- Turnover after no-trade band (avg daily): {turnover.get('avg_turnover_after_band', 0.0) * 100.0:.2f}%\n")
-        f.write(f"- Throttled turnover (avg daily): {turnover.get('avg_throttled_turnover', 0.0) * 100.0:.2f}%\n")
-        f.write(f"- Median daily turnover: {turnover.get('median_daily_turnover_pct', 0.0):.2f}%\n")
-
-        execution = base_diag.get("execution", {})
-        f.write("\n## 5. Execution Diagnostics (Base)\n")
-        counts = execution.get("counts", {})
-        f.write(f"- Executed trades: {counts.get('executed', 0)}\n")
-        f.write(f"- Deferred trades: {counts.get('deferred', 0)}\n")
-        f.write(f"- Canceled trades: {counts.get('canceled', 0)}\n")
-        f.write("- Avg slippage (bps) by quality bucket:\n")
-        for bucket, value in execution.get("avg_slippage_bps_by_bucket", {}).items():
-            if value is None or np.isnan(value):
-                f.write(f"  - {bucket}: n/a\n")
-            else:
-                f.write(f"  - {bucket}: {value:.2f}\n")
-
-        breadth = base_diag.get("breadth", {})
-        f.write("\n## 6. Breadth and Eligibility (Base)\n")
-        f.write(f"- Average active assets: {breadth.get('average_active_assets', 0.0):.2f}\n")
-        f.write(f"- Average active categories: {breadth.get('average_active_categories', 0.0):.2f}\n")
-        f.write(f"- Mean max-category share: {breadth.get('max_category_share_mean', 0.0):.2f}\n")
-
-        cost_drag = base_diag.get("cost_drag", {})
-        f.write("\n## 7. Cost Drag by Asset Class (Base)\n")
-        for cls, amount in cost_drag.get("by_asset_class", {}).items():
-            f.write(f"- {cls}: ${amount:,.2f}\n")
-
-        risk = base_diag.get("risk_events", {})
-        f.write("\n## 8. Risk Event Ledger (Base)\n")
-        f.write(f"- Total risk events: {risk.get('count', 0)}\n")
-        for event, n in risk.get("by_type", {}).items():
-            f.write(f"- {event}: {n}\n")
-
-        f.write("\n## 9. Acceptance Gate and Decision\n")
+        f.write("\n## 3. Acceptance Checks\n")
         for check_name, passed in checks.items():
             f.write(f"- {check_name}: {'PASS' if passed else 'FAIL'}\n")
+
         f.write(f"\n**Decision: {decision}**\n")
 
     generated["summary_md"] = str(summary_md_path)
@@ -287,10 +378,17 @@ def write_report_files(output_dir: Path, make_plots: bool) -> Dict[str, str]:
         import matplotlib.pyplot as plt
 
         fig, ax = plt.subplots(figsize=(12, 5))
-        for scenario in ["base", "stress_1p5x", "stress_2p0x_delay", "stress_missing_data", "stress_liquidity", "stress_borrow_funding"]:
+        for scenario in [
+            "base",
+            "stress_1p5x",
+            "stress_2p0x_delay",
+            "stress_missing_data",
+            "stress_liquidity",
+            "stress_borrow_funding",
+        ]:
             results[scenario]["equity"].plot(ax=ax, lw=1.0, label=scenario)
         ax.legend(loc="best")
-        ax.set_title("v5 Scenario Equity Curves")
+        ax.set_title(f"{strategy_version} scenario equity curves")
         fig.tight_layout()
         eq_png = output_dir / "equity_curve.png"
         fig.savefig(eq_png, dpi=150)
@@ -306,16 +404,23 @@ def default_output_dir() -> Path:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run v5 backtest scenario matrix and generate report bundle.")
+    parser = argparse.ArgumentParser(description="Run backtest scenario matrix and generate report bundle.")
     parser.add_argument("--output-dir", type=str, default=None)
     parser.add_argument("--no-plots", action="store_true")
+    parser.add_argument("--strategy-version", choices=["v5", "v6"], default=STRATEGY_VERSION)
+    parser.add_argument("--skip-ablation", action="store_true")
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
     out_dir = Path(args.output_dir) if args.output_dir else default_output_dir()
-    generated = write_report_files(output_dir=out_dir, make_plots=not args.no_plots)
+    generated = write_report_files(
+        output_dir=out_dir,
+        make_plots=not args.no_plots,
+        strategy_version=args.strategy_version,
+        run_ablation=not args.skip_ablation,
+    )
 
     print(f"Report generated in: {out_dir}")
     for key, value in generated.items():

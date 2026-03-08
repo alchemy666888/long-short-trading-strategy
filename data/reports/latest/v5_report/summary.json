@@ -1,0 +1,408 @@
+{
+  "strategy_version": "v5",
+  "scenarios": {
+    "base": {
+      "start": "2025-06-01 00:00:00-04:00",
+      "end": "2026-01-31 00:00:00-05:00",
+      "bars": 245,
+      "start_equity": 1000000.0,
+      "end_equity": 1121302.610394611,
+      "total_return_pct": 12.13026103946111,
+      "annualized_return_pct": 12.551967187462875,
+      "annualized_volatility_pct": 16.257065799203907,
+      "sharpe": 0.7720930297321879,
+      "max_drawdown_pct": -10.80744366377122,
+      "max_drawdown_at": "2026-01-22 00:00:00-05:00"
+    },
+    "stress_1p5x": {
+      "start": "2025-06-01 00:00:00-04:00",
+      "end": "2026-01-31 00:00:00-05:00",
+      "bars": 245,
+      "start_equity": 1000000.0,
+      "end_equity": 1117290.0218843145,
+      "total_return_pct": 11.729002188431448,
+      "annualized_return_pct": 12.136018183316487,
+      "annualized_volatility_pct": 16.26494818117662,
+      "sharpe": 0.7461455178419486,
+      "max_drawdown_pct": -10.861115115917375,
+      "max_drawdown_at": "2026-01-22 00:00:00-05:00"
+    },
+    "stress_2p0x_delay": {
+      "start": "2025-06-01 00:00:00-04:00",
+      "end": "2026-01-31 00:00:00-05:00",
+      "bars": 245,
+      "start_equity": 1000000.0,
+      "end_equity": 1147161.5224824199,
+      "total_return_pct": 14.716152248241986,
+      "annualized_return_pct": 15.23369176018614,
+      "annualized_volatility_pct": 16.346400496263893,
+      "sharpe": 0.9319294338633101,
+      "max_drawdown_pct": -9.544585305968155,
+      "max_drawdown_at": "2026-01-19 00:00:00-05:00"
+    },
+    "stress_missing_data": {
+      "start": "2025-06-01 00:00:00-04:00",
+      "end": "2026-01-31 00:00:00-05:00",
+      "bars": 245,
+      "start_equity": 1000000.0,
+      "end_equity": 944690.6389940525,
+      "total_return_pct": -5.530936100594741,
+      "annualized_return_pct": -5.707003926663246,
+      "annualized_volatility_pct": 15.163558956091189,
+      "sharpe": -0.37636309148722286,
+      "max_drawdown_pct": -11.001457836604246,
+      "max_drawdown_at": "2025-12-03 00:00:00-05:00"
+    },
+    "stress_liquidity": {
+      "start": "2025-06-01 00:00:00-04:00",
+      "end": "2026-01-31 00:00:00-05:00",
+      "bars": 245,
+      "start_equity": 1000000.0,
+      "end_equity": 1124469.611868214,
+      "total_return_pct": 12.446961186821405,
+      "annualized_return_pct": 12.880296249866262,
+      "annualized_volatility_pct": 16.247988512840195,
+      "sharpe": 0.7927317427438746,
+      "max_drawdown_pct": -10.69759336595456,
+      "max_drawdown_at": "2026-01-22 00:00:00-05:00"
+    },
+    "stress_borrow_funding": {
+      "start": "2025-06-01 00:00:00-04:00",
+      "end": "2026-01-31 00:00:00-05:00",
+      "bars": 245,
+      "start_equity": 1000000.0,
+      "end_equity": 1112820.6906004,
+      "total_return_pct": 11.282069060040012,
+      "annualized_return_pct": 11.672780420857487,
+      "annualized_volatility_pct": 16.246848138551567,
+      "sharpe": 0.7184643028181916,
+      "max_drawdown_pct": -10.940051566495669,
+      "max_drawdown_at": "2026-01-22 00:00:00-05:00"
+    }
+  },
+  "acceptance_checks": {
+    "base_sharpe_ge_0_9": false,
+    "base_maxdd_le_12pct": true,
+    "stress_1p5x_sharpe_ge_0_4": true,
+    "stress_2p0x_delay_non_negative_total_return": true,
+    "median_daily_turnover_le_35pct": true
+  },
+  "decision": "refine",
+  "comparison": {},
+  "diagnostics": {
+    "regime_state_attribution": {
+      "RISK_ON": {
+        "bars": 0,
+        "total_return_pct": NaN,
+        "annualized_return_pct": NaN,
+        "annualized_volatility_pct": NaN,
+        "sharpe": NaN,
+        "max_drawdown_pct": NaN
+      },
+      "NEUTRAL": {
+        "bars": 231,
+        "total_return_pct": 12.785270496770739,
+        "annualized_return_pct": 14.025662004727124,
+        "annualized_volatility_pct": 16.62247141080564,
+        "sharpe": 0.8437771771777313,
+        "max_drawdown_pct": -10.286424918427372
+      },
+      "RISK_OFF": {
+        "bars": 14,
+        "total_return_pct": -0.5807579787898476,
+        "annualized_return_pct": -9.953246610808709,
+        "annualized_volatility_pct": 7.022303125565737,
+        "sharpe": -1.417376383906362,
+        "max_drawdown_pct": -1.4291374282098812
+      }
+    },
+    "turnover": {
+      "avg_raw_turnover": 0.21934875721646896,
+      "avg_turnover_after_band": 0.21933434834485668,
+      "avg_throttled_turnover": 0.11048028536306996,
+      "median_daily_turnover_pct": 0.0
+    },
+    "execution": {
+      "counts": {
+        "executed": 78,
+        "deferred": 77,
+        "canceled": 143
+      },
+      "bucket_counts": {
+        "high": 78,
+        "medium": 137,
+        "low": 92
+      },
+      "avg_slippage_bps_by_bucket": {
+        "high": 1.0,
+        "medium": 3.0,
+        "low": 6.0
+      }
+    },
+    "breadth": {
+      "average_active_assets": 1.221311475409836,
+      "average_active_categories": 0.5983606557377049,
+      "max_category_share_mean": 0.21983801717408274
+    },
+    "cost_drag": {
+      "total_cost_drag": 7255.09717604158,
+      "cost_drag_pct_of_starting_capital": 0.7255097176041579,
+      "by_asset_class": {
+        "stock": 326.8824431821139,
+        "forex": 191.50911311845528,
+        "metal": 358.0599863885182,
+        "crypto": 6378.645633352492
+      }
+    },
+    "risk_events": {
+      "count": 266,
+      "by_type": {
+        "breadth_gate_block": 242,
+        "stop_loss": 11,
+        "time_stop": 7,
+        "portfolio_dd5_cut": 3,
+        "portfolio_dd20_flat": 3
+      }
+    },
+    "data_quality": {
+      "hard_pass": true,
+      "breadth_pass": true,
+      "breadth": {
+        "eligible_assets": 14,
+        "eligible_categories": 4,
+        "max_category_share": 0.3571,
+        "eligible_assets_list": [
+          "AUDUSD",
+          "BTC",
+          "COPPER",
+          "ETH",
+          "EURUSD",
+          "GOLD",
+          "GOOG",
+          "MCD",
+          "NVDA",
+          "SILVER",
+          "SOL",
+          "SPY",
+          "TSLA",
+          "XRP"
+        ],
+        "class_counts": {
+          "stock": 5,
+          "forex": 2,
+          "metal": 3,
+          "crypto": 4
+        }
+      },
+      "thresholds": {
+        "daily_coverage_90d": 0.98,
+        "4h_coverage_30d": 0.95,
+        "feature_completeness": 0.97,
+        "min_eligible_assets": 10,
+        "min_categories": 3,
+        "max_category_share": 0.45
+      },
+      "per_asset": {
+        "TSLA": {
+          "asset_class": "stock",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "MCD": {
+          "asset_class": "stock",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "NVDA": {
+          "asset_class": "stock",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "GOOG": {
+          "asset_class": "stock",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "SPY": {
+          "asset_class": "stock",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "EURUSD": {
+          "asset_class": "forex",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "AUDUSD": {
+          "asset_class": "forex",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "GOLD": {
+          "asset_class": "metal",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "SILVER": {
+          "asset_class": "metal",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "COPPER": {
+          "asset_class": "metal",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "BTC": {
+          "asset_class": "crypto",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "ETH": {
+          "asset_class": "crypto",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "SOL": {
+          "asset_class": "crypto",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        },
+        "XRP": {
+          "asset_class": "crypto",
+          "frequency_median_hours": {
+            "1d": 24.0,
+            "4h": 4.0
+          },
+          "coverage_min": {
+            "1d_90d": 1.0,
+            "4h_30d": 1.0
+          },
+          "feature_completeness": 1.0,
+          "eligible": true,
+          "reasons": []
+        }
+      },
+      "exclusions": {}
+    },
+    "analysis": {}
+  },
+  "ablation": {}
+}
