@@ -98,3 +98,9 @@ Primary plan used for this implementation:
 
 Strategy spec:
 - `doc/long-short-trading-strategy-v6.md`
+
+## 7) Newbie Learning Path
+
+If you are new to quant trading/coding and want a structured path, read:
+- `doc/newbie-quant-mastery-roadmap.md`
+
